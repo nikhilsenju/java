@@ -1590,3 +1590,396 @@ Collection (1.2)
 - Use `Set` when you only need uniqueness.
 - Use `SortedSet` when you need uniqueness + sorted order.
 - Use `NavigableSet` when you need uniqueness + sorted order + nearest-element navigation.
+
+---
+
+## Interface 6: Queue
+
+### Extracted Content
+
+- `Queue` is a child interface of `Collection`.
+- If we want to represent a group of objects before processing, we should use `Queue`.
+- Typical processing order is FIFO (First In, First Out).
+- Example idea from slide: mail IDs are stored first and then processed in the same order.
+
+### Proper Explanation
+
+`Queue` is designed for processing elements in a sequence, usually FIFO.
+
+- Insert at tail: `offer()` / `add()`
+- Read head: `peek()`
+- Remove head: `poll()` / `remove()`
+
+Unlike `List`, a `Queue` is not mainly for random index-based access. It is for workflow-style processing (tasks, requests, events, messages).
+
+### Hierarchy Snapshot (from slide)
+
+```text
+Collection (1.2)
+  -> Queue (1.5)
+      -> PriorityQueue (class, 1.5)
+      -> BlockingQueue (interface, 1.5)
+          -> LinkedBlockingQueue (class, 1.5)
+          -> PriorityBlockingQueue (class, 1.5)
+```
+
+### Small Examples
+
+#### Example 1: FIFO behavior with `LinkedList` as `Queue`
+
+```java
+import java.util.*;
+
+public class QueueFifoExample {
+    public static void main(String[] args) {
+        Queue<String> mailQueue = new LinkedList<>();
+        mailQueue.offer("mail-1");
+        mailQueue.offer("mail-2");
+        mailQueue.offer("mail-3");
+
+        System.out.println(mailQueue.poll()); // mail-1
+        System.out.println(mailQueue.poll()); // mail-2
+        System.out.println(mailQueue.poll()); // mail-3
+    }
+}
+```
+
+#### Example 2: `PriorityQueue` (not FIFO, sorted by priority)
+
+```java
+import java.util.*;
+
+public class PriorityQueueExample {
+    public static void main(String[] args) {
+        Queue<Integer> pq = new PriorityQueue<>();
+        pq.offer(30);
+        pq.offer(10);
+        pq.offer(20);
+
+        System.out.println(pq.poll()); // 10
+        System.out.println(pq.poll()); // 20
+        System.out.println(pq.poll()); // 30
+    }
+}
+```
+
+### Quick Rule
+
+- Use `Queue` when data must be processed in sequence.
+- Use `PriorityQueue` when highest/lowest priority should be processed first.
+
+---
+
+## Important Note: Collection Interfaces vs Map
+
+### Extracted Content
+
+- `Collection`, `List`, `Set`, `SortedSet`, `NavigableSet`, and `Queue` are for representing a group of individual objects.
+- If we need key-value pair representation, we should use `Map`.
+
+### Proper Explanation
+
+- `Collection` hierarchy: stores single values (elements).
+- `Map` hierarchy: stores key-value pairs (`key -> value`).
+
+Small example:
+
+```java
+import java.util.*;
+
+public class CollectionVsMapExample {
+    public static void main(String[] args) {
+        List<String> names = Arrays.asList("A", "B", "C"); // values only
+
+        Map<Integer, String> idToName = new HashMap<>();
+        idToName.put(101, "A");
+        idToName.put(102, "B");
+
+        System.out.println(names);      // [A, B, C]
+        System.out.println(idToName);   // {101=A, 102=B}
+    }
+}
+```
+
+---
+
+## Interface 7: Map
+
+### Extracted Content
+
+- `Map` is **not** a child interface of `Collection`.
+- Use `Map` when data should be represented as **key-value pairs**.
+- Both keys and values are objects.
+- Duplicate keys are not allowed, but duplicate values are allowed.
+
+### Proper Explanation
+
+`Map<K, V>` is used when each value must be accessed through a unique key.
+
+- Key uniqueness: each key can appear only once.
+- Value duplication: multiple keys can have the same value.
+- If the same key is inserted again, old value gets replaced.
+
+Example from slide idea:
+
+- `101 -> Durga`
+- `102 -> Ravi`
+- `103 -> Venkat`
+
+This is exactly a `Map<Integer, String>` use case.
+
+### Hierarchy Snapshot (from slide)
+
+```text
+Map (interface, 1.2)
+  -> HashMap (class, 1.2)
+      -> LinkedHashMap (class, 1.4)
+  -> WeakHashMap (class, 1.2)
+  -> IdentityHashMap (class, 1.4)
+  -> Hashtable (class, 1.0)
+      -> Properties (class, 1.0)
+
+Dictionary (abstract class, legacy, 1.0)
+  -> Hashtable
+```
+
+### Small Examples
+
+#### Example 1: Basic Map usage (student roll number -> name)
+
+```java
+import java.util.*;
+
+public class MapSmallExample1 {
+    public static void main(String[] args) {
+        Map<Integer, String> students = new HashMap<>();
+        students.put(101, "Durga");
+        students.put(102, "Ravi");
+        students.put(103, "Venkat");
+
+        System.out.println(students.get(102)); // Ravi
+        System.out.println(students);           // {101=Durga, 102=Ravi, 103=Venkat}
+    }
+}
+```
+
+#### Example 2: Duplicate key vs duplicate value
+
+```java
+import java.util.*;
+
+public class MapSmallExample2 {
+    public static void main(String[] args) {
+        Map<Integer, String> m = new HashMap<>();
+        m.put(1, "A");
+        m.put(2, "A");     // duplicate value allowed
+        m.put(1, "B");     // duplicate key: value replaced
+
+        System.out.println(m); // {1=B, 2=A}
+    }
+}
+```
+
+### Quick Rule
+
+- Use `Collection` interfaces (`List`, `Set`, `Queue`, etc.) for value collections.
+- Use `Map` when you need key-based lookup and key-value modeling.
+
+---
+
+## Interface 8: SortedMap
+
+### Extracted Content
+
+- `SortedMap` is a child interface of `Map`.
+- Use `SortedMap` when key-value pairs should be maintained according to sorted order of keys.
+
+### Proper Explanation
+
+`SortedMap<K, V>` stores entries in key-sorted order.
+
+- Keys are unique (same as `Map`).
+- Values can be duplicated.
+- Sorting is by natural key order or custom `Comparator`.
+- Common implementation: `TreeMap`.
+
+### Hierarchy Snapshot (from slide)
+
+```text
+Map (1.2)
+  -> SortedMap (1.2)
+      -> TreeMap (class, 1.2)
+```
+
+### Small Example
+
+```java
+import java.util.*;
+
+public class SortedMapSmallExample {
+    public static void main(String[] args) {
+        SortedMap<Integer, String> students = new TreeMap<>();
+        students.put(103, "Venkat");
+        students.put(101, "Durga");
+        students.put(102, "Ravi");
+
+        System.out.println(students);       // {101=Durga, 102=Ravi, 103=Venkat}
+        System.out.println(students.firstKey()); // 101
+        System.out.println(students.lastKey());  // 103
+    }
+}
+```
+
+---
+
+## Interface 9: NavigableMap
+
+### Extracted Content
+
+- `NavigableMap` is a child interface of `SortedMap`.
+- It defines utility methods for navigation.
+
+### Proper Explanation
+
+`NavigableMap<K, V>` extends `SortedMap` with nearest-key navigation methods.
+
+- `lowerKey(k)`: greatest key strictly less than `k`
+- `floorKey(k)`: greatest key less than or equal to `k`
+- `ceilingKey(k)`: smallest key greater than or equal to `k`
+- `higherKey(k)`: smallest key strictly greater than `k`
+- `firstEntry()`, `lastEntry()`, `pollFirstEntry()`, `pollLastEntry()` for boundary entry operations
+
+Common implementation: `TreeMap` (it implements `NavigableMap`).
+
+### Hierarchy Snapshot (from slide)
+
+```text
+Map (1.2)
+  -> SortedMap (1.2)
+      -> NavigableMap (1.6)
+          -> TreeMap (class, 1.2)
+```
+
+### Small Example
+
+```java
+import java.util.*;
+
+public class NavigableMapSmallExample {
+    public static void main(String[] args) {
+        NavigableMap<Integer, String> m = new TreeMap<>();
+        m.put(10, "A");
+        m.put(20, "B");
+        m.put(30, "C");
+
+        System.out.println(m.floorKey(25));   // 20
+        System.out.println(m.ceilingKey(25)); // 30
+        System.out.println(m.lowerKey(20));   // 10
+        System.out.println(m.higherKey(20));  // 30
+    }
+}
+```
+
+### Quick Rule
+
+- Use `Map` for key-value storage.
+- Use `SortedMap` for key-value storage with sorted keys.
+- Use `NavigableMap` when you also need nearest-key navigation methods.
+
+---
+
+## Collection Framework Overview (Diagram Summary)
+
+### Extracted Content (from overview diagrams)
+
+- `Collection` is the root interface for `List`, `Set`, and `Queue` branches.
+- `List` branch includes `ArrayList`, `LinkedList`, and legacy classes `Vector` and `Stack`.
+- `Set` branch includes `HashSet`, `LinkedHashSet`, `SortedSet`, `NavigableSet`, and `TreeSet`.
+- `Queue` branch includes `PriorityQueue` and `BlockingQueue` implementations.
+- `Map` is a separate hierarchy with implementations like `HashMap`, `LinkedHashMap`, `WeakHashMap`, `IdentityHashMap`, `Hashtable`, and `Properties`.
+- `Dictionary`, `Hashtable`, `Properties`, `Vector`, and `Stack` are shown as legacy-era classes.
+- Extra concepts shown: Sorting (`Comparable`, `Comparator`), Cursors (`Enumeration`, `Iterator`, `ListIterator`), Utility classes (`Collections`, `Arrays`).
+
+### Proper Explanation
+
+The diagrams summarize the full idea of Java Collections in one view:
+
+1. `Collection` hierarchy is for storing groups of elements.
+2. `Map` hierarchy is for key-value data and is separate from `Collection`.
+3. Modern code usually prefers `ArrayList`, `HashSet`, `TreeSet`, `PriorityQueue`, `HashMap`, and `TreeMap`.
+4. Legacy classes (`Vector`, `Stack`, `Hashtable`, `Dictionary`) exist mostly for compatibility with old code.
+
+### Clean Hierarchy Snapshot
+
+```text
+Collection (interface)
+  -> List
+      -> ArrayList
+      -> LinkedList
+      -> Vector (legacy)
+          -> Stack (legacy)
+  -> Set
+      -> HashSet
+          -> LinkedHashSet
+      -> SortedSet
+          -> NavigableSet
+              -> TreeSet
+  -> Queue
+      -> PriorityQueue
+      -> BlockingQueue
+          -> LinkedBlockingQueue
+          -> PriorityBlockingQueue
+
+Map (separate interface hierarchy)
+  -> HashMap
+      -> LinkedHashMap
+  -> WeakHashMap
+  -> IdentityHashMap
+  -> Hashtable (legacy)
+      -> Properties (legacy utility for config-like key/value text)
+```
+
+### Small Examples
+
+#### 1) Sorting Interfaces
+
+```java
+import java.util.*;
+
+class Student implements Comparable<Student> {
+    int id;
+    Student(int id) { this.id = id; }
+    public int compareTo(Student o) { return Integer.compare(this.id, o.id); }
+}
+
+// Comparator example (custom order)
+Comparator<Student> descById = (a, b) -> Integer.compare(b.id, a.id);
+```
+
+#### 2) Cursor Types
+
+```java
+// Iterator: works for most collections
+Iterator<String> it = Arrays.asList("A", "B").iterator();
+
+// ListIterator: only for List, supports bidirectional traversal
+ListIterator<String> li = new ArrayList<>(Arrays.asList("A", "B")).listIterator();
+```
+
+#### 3) Utility Classes
+
+```java
+List<Integer> nums = new ArrayList<>(Arrays.asList(3, 1, 2));
+Collections.sort(nums); // [1, 2, 3]
+
+int[] a = {3, 1, 2};
+Arrays.sort(a); // [1, 2, 3]
+```
+
+### Quick Study Rules
+
+- Need ordered duplicates -> `List`
+- Need uniqueness -> `Set`
+- Need sorted uniqueness -> `SortedSet`/`NavigableSet`
+- Need processing pipeline (FIFO/priority) -> `Queue`
+- Need key-value lookup -> `Map`
