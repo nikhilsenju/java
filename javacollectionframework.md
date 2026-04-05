@@ -3389,4 +3389,3571 @@ public class ArrayListVsLinkedListDemo {
 }
 ```
 
+
+
+---
+
+## Vector Class (Detailed)
+
+`Vector` is one of the oldest collection classes in Java (introduced in **Java 1.0**).  
+It is part of the List hierarchy and is considered a **legacy** class.
+
+### 1) Key Characteristics
+
+- **Underlying data structure:** Resizable (growable) array.
+- **Order:** Insertion order is preserved.
+- **Duplicates:** Allowed.
+- **Null values:** Allowed.
+- **Heterogeneous objects:** Allowed when using raw type (`Vector`), not recommended in modern code.
+- **Interfaces implemented:** `Serializable`, `Cloneable`, `RandomAccess`, `List`.
+- **Thread safety:** Most methods are synchronized, so Vector is thread-safe for basic operations.
+- **Performance:** Good for retrieval (`get(index)`), but generally slower than `ArrayList` due to synchronization overhead.
+
+---
+
+### 2) Vector-Specific and Related Methods
+
+#### A) Adding Objects
+
+| Method | Source | Description |
+|---|---|---|
+| `add(E e)` | Collection/List | Adds element at end |
+| `add(int index, E element)` | List | Adds element at specific index |
+| `addElement(E obj)` | Vector (legacy) | Adds element at end (legacy equivalent) |
+
+#### B) Removing Objects
+
+| Method | Source | Description |
+|---|---|---|
+| `remove(Object o)` | Collection | Removes first matching object |
+| `remove(int index)` | List | Removes element at index |
+| `clear()` | Collection | Removes all elements |
+| `removeElement(Object obj)` | Vector (legacy) | Removes first matching object |
+| `removeElementAt(int index)` | Vector (legacy) | Removes element at index |
+| `removeAllElements()` | Vector (legacy) | Removes all elements |
+
+#### C) Accessing Objects
+
+| Method | Source | Description |
+|---|---|---|
+| `get(int index)` | List | Returns element at index |
+| `elementAt(int index)` | Vector (legacy) | Returns element at index |
+| `firstElement()` | Vector (legacy) | Returns first element |
+| `lastElement()` | Vector (legacy) | Returns last element |
+
+#### D) Utility Methods
+
+| Method | Description |
+|---|---|
+| `size()` | Number of elements currently present |
+| `capacity()` | Current internal array capacity |
+| `elements()` | Returns `Enumeration<E>` for traversal (legacy cursor) |
+
+---
+
+### 3) Constructors of Vector
+
+```java
+Vector<E> v1 = new Vector<>();
+Vector<E> v2 = new Vector<>(int initialCapacity);
+Vector<E> v3 = new Vector<>(int initialCapacity, int capacityIncrement);
+Vector<E> v4 = new Vector<>(Collection<? extends E> c);
+```
+
+#### Constructor behavior
+
+1. `new Vector<>()`  
+   - Initial capacity: **10**
+   - Growth rule (default): **capacity doubles** when full.
+
+2. `new Vector<>(initialCapacity)`  
+   - Starts with provided capacity.
+   - If full, default growth is doubling (when no increment specified).
+
+3. `new Vector<>(initialCapacity, capacityIncrement)`  
+   - Starts with provided capacity.
+   - When full, grows by fixed `capacityIncrement`.
+
+4. `new Vector<>(collection)`  
+   - Creates a vector containing all elements from given collection.
+
+---
+
+### 4) Capacity Growth Demo
+
+```java
+import java.util.*;
+
+public class VectorCapacityDemo {
+    public static void main(String[] args) {
+        // Default constructor: initial capacity = 10, growth = double
+        Vector<Integer> v1 = new Vector<>();
+        System.out.println("v1 initial size      : " + v1.size());      // 0
+        System.out.println("v1 initial capacity  : " + v1.capacity());  // 10
+
+        for (int i = 1; i <= 10; i++) v1.add(i);
+        System.out.println("After 10 adds size   : " + v1.size());       // 10
+        System.out.println("After 10 adds cap    : " + v1.capacity());   // 10
+
+        v1.add(11); // triggers grow
+        System.out.println("After 11th add size  : " + v1.size());       // 11
+        System.out.println("After 11th add cap   : " + v1.capacity());   // 20
+
+        // (10, 5): grows by +5
+        Vector<Integer> v2 = new Vector<>(10, 5);
+        for (int i = 1; i <= 11; i++) v2.add(i);
+        System.out.println("v2 (10,5) size       : " + v2.size());       // 11
+        System.out.println("v2 (10,5) capacity   : " + v2.capacity());   // 15
+    }
+}
+```
+
+---
+
+### 5) One Comprehensive Demo (Constructors + Methods)
+
+```java
+import java.util.*;
+
+public class VectorAllInOneDemo {
+    public static void main(String[] args) {
+        // Constructors
+        Vector<Object> vDefault = new Vector<>();
+        Vector<String> vCap = new Vector<>(5);
+        Vector<Integer> vCapInc = new Vector<>(3, 2);
+        Vector<String> vFromCollection = new Vector<>(Arrays.asList("A", "B", "C"));
+
+        // Interface checks
+        System.out.println(vDefault instanceof java.io.Serializable); // true
+        System.out.println(vDefault instanceof Cloneable);            // true
+        System.out.println(vDefault instanceof RandomAccess);         // true
+
+        // Add methods
+        vDefault.add("Java");          // List/Collection
+        vDefault.add(30);              // heterogeneous (raw/object use)
+        vDefault.add(null);            // null allowed
+        vDefault.add("Java");          // duplicate allowed
+        vDefault.add(1, "Python");     // add at index
+        vDefault.addElement("Legacy"); // vector legacy add
+
+        System.out.println("After add operations: " + vDefault);
+
+        // Access methods
+        System.out.println("get(0): " + vDefault.get(0));
+        System.out.println("elementAt(1): " + vDefault.elementAt(1));
+        System.out.println("firstElement(): " + vDefault.firstElement());
+        System.out.println("lastElement(): " + vDefault.lastElement());
+
+        // Utility
+        System.out.println("size(): " + vDefault.size());
+        System.out.println("capacity(): " + vDefault.capacity());
+
+        // Enumeration (legacy cursor)
+        System.out.print("elements(): ");
+        Enumeration<Object> en = vDefault.elements();
+        while (en.hasMoreElements()) {
+            System.out.print(en.nextElement() + " ");
+        }
+        System.out.println();
+
+        // Remove methods
+        vDefault.remove("Java");          // removes first matching
+        vDefault.remove(0);               // removes by index
+        vDefault.removeElement("Legacy"); // legacy remove by object
+        if (!vDefault.isEmpty()) {
+            vDefault.removeElementAt(0);  // legacy remove by index
+        }
+
+        System.out.println("After remove operations: " + vDefault);
+
+        // clear and legacy clear
+        vDefault.clear();
+        System.out.println("After clear(): " + vDefault);
+
+        vFromCollection.removeAllElements(); // legacy clear
+        System.out.println("After removeAllElements(): " + vFromCollection);
+
+        // Capacity increment demo vector
+        vCapInc.add(1);
+        vCapInc.add(2);
+        vCapInc.add(3);
+        System.out.println("vCapInc capacity before full grow: " + vCapInc.capacity()); // 3
+        vCapInc.add(4); // grows by +2 => 5
+        System.out.println("vCapInc capacity after grow: " + vCapInc.capacity());       // 5
+
+        // constructor from collection
+        System.out.println("vFromCollection (initial): " + new Vector<>(Arrays.asList("A", "B", "C")));
+        System.out.println("vCap initial capacity: " + vCap.capacity()); // 5
+    }
+}
+```
+
+---
+
+### 6) Quick Rules
+
+- Prefer `ArrayList` in modern single-threaded code.
+- Use `Vector` mainly for:
+  - legacy compatibility, or
+  - simple built-in synchronized list behavior.
+- For modern concurrent scenarios, prefer:
+  - `Collections.synchronizedList(new ArrayList<>())`, or
+  - `CopyOnWriteArrayList` (read-heavy cases).
+
+<!<!-- ...existing code... -->
+
+---
+
+## Stack Class (Detailed)
+
+`Stack` is a **legacy class** in Java (since **1.0**) and is a child class of `Vector`.
+
+### Key Characteristics
+
+- **Inheritance:** `Stack` extends `Vector`.
+- **Thread-safety:** Inherits synchronized behavior from `Vector`.
+- **Principle:** Follows **LIFO** (Last In First Out).
+- **Legacy note:** Works fine, but in modern code `Deque` (`ArrayDeque`) is often preferred.
+
+### Constructor
+
+```java
+Stack<E> s = new Stack<>();
+```
+
+Creates an empty stack.
+
+### Core Stack Methods
+
+| Method | Return Type | Description |
+|---|---|---|
+| `push(E item)` | `E` | Pushes item onto top of stack and returns it |
+| `pop()` | `E` | Removes and returns top element |
+| `peek()` | `E` | Returns top element without removing |
+| `empty()` | `boolean` | Returns `true` if stack is empty |
+| `search(Object o)` | `int` | Returns 1-based offset from top, else `-1` |
+
+### Important: `search()` Offset Rule
+
+`search()` does **not** use normal 0-based index.
+
+- Top element offset = `1`
+- Next below top = `2`
+- If element not found = `-1`
+
+Example stack: `[A, B, C]` (top is `C`)
+
+- `search("C")` -> `1`
+- `search("B")` -> `2`
+- `search("A")` -> `3`
+- `search("Z")` -> `-1`
+
+### Demo Program
+
+```java
+import java.util.EmptyStackException;
+import java.util.Stack;
+
+public class StackDemo {
+    public static void main(String[] args) {
+        Stack<String> s = new Stack<>();
+
+        // push
+        s.push("A");
+        s.push("B");
+        s.push("C");
+        System.out.println("Stack after push: " + s); // [A, B, C]
+
+        // peek
+        System.out.println("peek(): " + s.peek()); // C
+        System.out.println("After peek stack: " + s); // unchanged
+
+        // search (1-based from top)
+        System.out.println("search(\"A\"): " + s.search("A")); // 3
+        System.out.println("search(\"C\"): " + s.search("C")); // 1
+        System.out.println("search(\"Z\"): " + s.search("Z")); // -1
+
+        // pop
+        System.out.println("pop(): " + s.pop()); // C
+        System.out.println("After pop: " + s); // [A, B]
+
+        // empty
+        System.out.println("empty(): " + s.empty()); // false
+        s.pop(); // B
+        s.pop(); // A
+        System.out.println("empty() after removing all: " + s.empty()); // true
+
+        // pop on empty -> EmptyStackException
+        try {
+            s.pop();
+        } catch (EmptyStackException e) {
+            System.out.println("Exception: " + e);
+        }
+    }
+}
+```
+
+### Quick Rule
+
+- If your requirement is strict **LIFO**, Stack works.
+- For new code, prefer:
+
+```java
+// Recommended modern stack style:
+Deque<String> stack = new ArrayDeque<>();
+stack.push("A");
+stack.push("B");
+System.out.println(stack.pop()); // B
+```
+
 <!-- ...existing code... -->
+<!-- ...existing code... -->
+
+---
+
+## Cursors in Java Collection Framework (Detailed)
+
+A **cursor** is used to retrieve objects from a collection **one by one**.
+
+If a collection contains many elements, a cursor helps process each element sequentially instead of handling everything at once.
+
+### Types of Cursors in Java
+
+1. `Enumeration` (legacy, Java 1.0)
+2. `Iterator` (Java 1.2)
+3. `ListIterator` (Java 1.2, only for List)
+
+---
+
+## Enumeration Interface (Legacy Cursor)
+
+`Enumeration` is the oldest cursor type in Java, introduced in **Java 1.0**.
+
+It is mainly used with **legacy classes** like:
+
+- `Vector`
+- `Hashtable`
+
+### How to Get Enumeration Object
+
+For `Vector`, use:
+
+```java
+Enumeration<E> e = vector.elements();
+```
+
+Legacy/raw form (older style):
+
+```java
+Enumeration e = v.elements();
+```
+
+### Core Methods of Enumeration
+
+| Method | Return Type | Purpose |
+|---|---|---|
+| `hasMoreElements()` | `boolean` | Checks whether more elements are available |
+| `nextElement()` | `E` / `Object` | Returns the next element |
+
+### Example 1: Basic Traversal with Enumeration
+
+```java
+import java.util.Enumeration;
+import java.util.Vector;
+
+public class EnumerationBasicDemo {
+    public static void main(String[] args) {
+        Vector<String> v = new Vector<>();
+        v.add("A");
+        v.add("B");
+        v.add("C");
+
+        Enumeration<String> e = v.elements();
+
+        while (e.hasMoreElements()) {
+            System.out.println(e.nextElement());
+        }
+    }
+}
+```
+
+### Example 2: Durga-style Filtering (Print Even Numbers Only)
+
+```java
+import java.util.Enumeration;
+import java.util.Vector;
+
+public class EnumerationEvenFilterDemo {
+    public static void main(String[] args) {
+        Vector<Integer> v = new Vector<>();
+
+        // Fill with 0 to 10
+        for (int i = 0; i <= 10; i++) {
+            v.add(i);
+        }
+
+        // Get cursor
+        Enumeration<Integer> e = v.elements();
+
+        // Process one by one and print only even numbers
+        while (e.hasMoreElements()) {
+            Integer n = e.nextElement();
+            if (n % 2 == 0) {
+                System.out.print(n + " ");
+            }
+        }
+        // Output: 0 2 4 6 8 10
+    }
+}
+```
+
+### Limitations of Enumeration
+
+1. **Read-only cursor**  
+   You can read elements, but cannot remove/update during traversal.
+
+2. **Legacy-focused**  
+   Mostly useful with old classes (`Vector`, `Hashtable`).
+
+3. **Less powerful than Iterator/ListIterator**  
+   No bidirectional traversal, no modification methods.
+
+---
+
+## Quick Comparison: Enumeration vs Iterator vs ListIterator
+
+| Feature | Enumeration | Iterator | ListIterator |
+|---|---|---|---|
+| Introduced | 1.0 | 1.2 | 1.2 |
+| Works with | Legacy classes | All collection types | List only |
+| Direction | Forward only | Forward only | Forward + backward |
+| Remove support | No | Yes (`remove`) | Yes (`remove`) |
+| Add/Set support | No | No | Yes (`add`, `set`) |
+| Legacy/Modern | Legacy | Modern | Modern |
+
+### Key Takeaways
+
+- `Enumeration` is the oldest cursor and still valid for legacy collections.
+- Main methods are only `hasMoreElements()` and `nextElement()`.
+- Best for simple read-only iteration on `Vector`/`Hashtable`.
+- For modern code, prefer `Iterator` or `ListIterator`.
+
+<!-- ...existing code... -->
+<!-- ...existing code... -->
+
+---
+
+## Iterator Interface (Second Cursor in Java)
+
+`Iterator` was introduced in **Java 1.2** to overcome key limitations of `Enumeration`.
+
+### Why Iterator Was Introduced (Limitations of Enumeration)
+
+1. **Not universal**  
+   `Enumeration` mainly works with legacy classes like `Vector` and `Hashtable`.
+
+2. **Read-only cursor**  
+   `Enumeration` cannot remove elements during traversal.
+
+### Advantages of Iterator
+
+1. **Universal cursor**  
+   Works with almost all Collection implementations (`ArrayList`, `LinkedList`, `HashSet`, etc.).
+
+2. **Read + Remove support**  
+   Allows element retrieval and safe removal while iterating.
+
+---
+
+### How to Obtain Iterator
+
+```java
+Iterator<T> itr = collection.iterator();
+```
+
+Example:
+
+```java
+Collection<Integer> c = new ArrayList<>();
+Iterator<Integer> itr = c.iterator();
+```
+
+---
+
+### Core Methods of Iterator
+
+| Method | Return Type | Purpose |
+|---|---|---|
+| `hasNext()` | `boolean` | Checks if next element exists |
+| `next()` | `E` | Returns next element and moves cursor forward |
+| `remove()` | `void` | Removes last element returned by `next()` |
+
+> `remove()` can be called only after `next()`.  
+> Calling `remove()` twice without another `next()` causes `IllegalStateException`.
+
+---
+
+### Practical Demo (Durga-style): Keep Only Even Numbers
+
+```java
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+
+public class IteratorEvenFilterDemo {
+    public static void main(String[] args) {
+        List<Integer> list = new ArrayList<>();
+
+        // 0 to 10
+        for (int i = 0; i <= 10; i++) {
+            list.add(i);
+        }
+
+        System.out.println("Before iteration: " + list);
+
+        Iterator<Integer> itr = list.iterator();
+        while (itr.hasNext()) {
+            Integer n = itr.next();
+            if (n % 2 == 0) {
+                System.out.print(n + " "); // read
+            } else {
+                itr.remove();              // remove odd numbers safely
+            }
+        }
+
+        System.out.println("\nAfter iteration: " + list); // [0, 2, 4, 6, 8, 10]
+    }
+}
+```
+
+---
+
+### What Iterator Still Cannot Do
+
+1. **Forward-only cursor**  
+   No backward traversal.
+
+2. **No direct replace/add during iteration**  
+   It supports `remove()`, but not `set()` or `add()`.
+
+These limitations are solved by **ListIterator** (for List types).
+
+### Key Takeaways
+
+- `Iterator` is the standard cursor for modern collection traversal.
+- It supports safe deletion during iteration (`itr.remove()`).
+- It is more powerful than `Enumeration`, but less powerful than `ListIterator`.
+
+<!-- ...existing code... -->
+<!-- ...existing code... -->
+
+---
+
+## ListIterator Interface (Third and Most Powerful Cursor)
+
+`ListIterator` is the third cursor in Java and a child interface of `Iterator`.
+
+### Why ListIterator?
+
+It overcomes limitations of `Enumeration` and `Iterator`:
+
+- **Bidirectional traversal** (forward + backward)
+- Supports **read, remove, replace (`set`) and add (`add`)**
+- Works only with **List** implementations (`ArrayList`, `LinkedList`, `Vector`, `Stack`)
+
+---
+
+### How to Obtain ListIterator
+
+```java
+ListIterator<E> ltr = list.listIterator();
+ListIterator<E> ltrFromIndex = list.listIterator(index);
+```
+
+---
+
+### 9 Methods of ListIterator
+
+#### 1) Forward Direction Methods
+
+| Method | Return Type | Purpose |
+|---|---|---|
+| `hasNext()` | `boolean` | Checks if next element exists |
+| `next()` | `E` | Returns next element and moves cursor forward |
+| `nextIndex()` | `int` | Index of element that would be returned by next `next()` |
+
+#### 2) Backward Direction Methods
+
+| Method | Return Type | Purpose |
+|---|---|---|
+| `hasPrevious()` | `boolean` | Checks if previous element exists |
+| `previous()` | `E` | Returns previous element and moves cursor backward |
+| `previousIndex()` | `int` | Index of element that would be returned by next `previous()` |
+
+#### 3) Modification Methods
+
+| Method | Return Type | Purpose |
+|---|---|---|
+| `remove()` | `void` | Removes last element returned by `next()`/`previous()` |
+| `set(E e)` | `void` | Replaces last element returned by `next()`/`previous()` |
+| `add(E e)` | `void` | Inserts element before next element (cursor position insert) |
+
+---
+
+### Practical Demo (Durga-style)
+
+```java
+import java.util.LinkedList;
+import java.util.ListIterator;
+
+public class ListIteratorDemo {
+    public static void main(String[] args) {
+        LinkedList<String> names = new LinkedList<>();
+        names.add("balakrishna");
+        names.add("venki");
+        names.add("chiru");
+        names.add("nag");
+
+        System.out.println("Before: " + names);
+
+        ListIterator<String> ltr = names.listIterator();
+        while (ltr.hasNext()) {
+            String s = ltr.next();
+
+            if (s.equalsIgnoreCase("venki")) {
+                ltr.remove(); // remove venki
+            } else if (s.equalsIgnoreCase("chiru")) {
+                ltr.set("charan"); // replace chiru -> charan
+            } else if (s.equalsIgnoreCase("nag")) {
+                ltr.add("chaitu"); // add after nag (in forward traversal context)
+            }
+        }
+
+        System.out.println("After : " + names);
+        // Output: [balakrishna, charan, nag, chaitu]
+
+        // Backward traversal demo
+        System.out.print("Backward traversal: ");
+        while (ltr.hasPrevious()) {
+            System.out.print(ltr.previous() + " ");
+        }
+    }
+}
+```
+
+---
+
+### Key Limitation
+
+`ListIterator` is **not universal**.  
+It works only for `List` classes, not for `Set` or `Map`.
+
+### Quick Comparison
+
+| Feature | Enumeration | Iterator | ListIterator |
+|---|---|---|---|
+| Direction | Forward only | Forward only | Forward + Backward |
+| Remove | No | Yes | Yes |
+| Set/Replace | No | No | Yes |
+| Add during iteration | No | No | Yes |
+| Works with | Legacy classes | Most Collections | List only |
+
+<!-- ...existing code... -->
+<!-- ...existing code... -->
+
+---
+
+## Comparison of Java Cursors: Enumeration vs Iterator vs ListIterator
+
+This section summarizes the three Java cursors side-by-side.
+
+### Comparison Table
+
+| Property | Enumeration | Iterator | ListIterator |
+|---|---|---|---|<!-- ...existing code... -->
+
+---
+
+## Implementation Classes Behind Cursor Interfaces (Important Concept)
+
+A common doubt:
+
+> `Enumeration`, `Iterator`, and `ListIterator` are interfaces.  
+> Interfaces cannot be instantiated directly.  
+> Then how do we “get objects” from `elements()`, `iterator()`, and `listIterator()`?
+
+### Correct Concept
+
+We never create interface objects directly.  
+Instead, collection classes return objects of **internal implementation classes** that implement those interfaces.
+
+- `elements()` returns an object implementing `Enumeration`
+- `iterator()` returns an object implementing `Iterator`
+- `listIterator()` returns an object implementing `ListIterator`
+
+So the reference type is interface type, but actual object type is an internal class.
+
+---
+
+### Vector Example (Internal Cursor Implementations)
+
+For `Vector`, commonly observed internal classes are:
+
+| Cursor Interface | Method | Typical Runtime Class Name |
+|---|---|---|
+| `Enumeration` | `elements()` | `java.util.Vector$1` |
+| `Iterator` | `iterator()` | `java.util.Vector$Itr` |
+| `ListIterator` | `listIterator()` | `java.util.Vector$ListItr` |
+
+> Note: Exact class names can vary slightly by JDK version/vendor, but concept remains the same.
+
+---
+
+### Program to Reveal Actual Implementation Class Names
+
+```java
+import java.util.*;
+
+public class CursorImplClassNamesDemo {
+    public static void main(String[] args) {
+        Vector<Integer> v = new Vector<>();
+        v.add(10);
+        v.add(20);
+        v.add(30);
+
+        Enumeration<Integer> e = v.elements();
+        Iterator<Integer> itr = v.iterator();
+        ListIterator<Integer> ltr = v.listIterator();
+
+        System.out.println("Enumeration impl: " + e.getClass().getName());
+        System.out.println("Iterator impl   : " + itr.getClass().getName());
+        System.out.println("ListIterator impl: " + ltr.getClass().getName());
+    }
+}
+```
+
+---
+
+### Why Java Uses This Design
+
+1. **Abstraction**  
+   You code to interfaces (`Iterator`, `ListIterator`), not concrete classes.
+
+2. **Flexibility**  
+   Different collections can provide different internal traversal logic.
+
+3. **Uniform API**  
+   Same method style (`iterator()`) works across many collections, even though implementation classes differ.
+
+### Key Takeaway
+
+- You hold cursor objects in interface references.
+- Actual objects are returned from hidden/internal implementation classes.
+- This is a core OOP design pattern: **program to interface, not implementation**.
+
+<!-- ...existing code... -->
+| Applicability | Legacy classes only (`Vector`, `Stack`, `Hashtable`) | Any Collection class (universal cursor) | Only `List` implemented classes |
+| Movement | Forward only | Forward only | Forward + Backward (bidirectional) |
+| Accessibility | Read-only | Read + Remove | Read + Remove + Replace (`set`) + Add (`add`) |
+| Obtained by | `elements()` | `iterator()` | `listIterator()` |
+| No. of methods | 2 | 3 | 9 |
+| Introduced in | Java 1.0 (Legacy) | Java 1.2 (Non-legacy) | Java 1.2 (Non-legacy) |
+
+### Methods Overview
+
+#### Enumeration (2 methods)
+- `hasMoreElements()`
+- `nextElement()`
+
+#### Iterator (3 methods)
+- `hasNext()`
+- `next()`
+- `remove()`
+
+#### ListIterator (9 methods)
+- `hasNext()`, `next()`, `nextIndex()`
+- `hasPrevious()`, `previous()`, `previousIndex()`
+- `remove()`, `set(E e)`, `add(E e)`
+
+### Key Takeaways
+
+1. **Iterator is universal** for most collections.
+2. **Enumeration is limited** to legacy collections and supports only read.
+3. **ListIterator is most powerful**, but only for `List`.
+4. Only **ListIterator** supports backward traversal.
+5. If you need add/set during traversal, use **ListIterator**.
+
+### Quick Cursor Creation Examples
+
+```java
+import java.util.*;
+
+public class CursorCreationDemo {
+    public static void main(String[] args) {
+        Vector<Integer> v = new Vector<>(Arrays.asList(10, 20, 30));
+        Enumeration<Integer> e = v.elements();
+
+        List<Integer> list = new ArrayList<>(Arrays.asList(1, 2, 3));
+        Iterator<Integer> itr = list.iterator();
+        ListIterator<Integer> ltr = list.listIterator();
+
+        System.out.println("Cursors created successfully.");
+    }
+}
+```
+
+<!-- ...existing code... -->
+<!-- ...existing code... -->
+
+---
+
+## HashSet (Detailed)
+
+### Set Interface Quick Notes
+
+1. `Set` is a child interface of `Collection`.
+2. Use `Set` when duplicates are not allowed.
+3. `Set` does not define new methods; it uses `Collection` methods only.
+
+### HashSet Key Characteristics
+
+- Underlying structure: hash table based (internally backed by `HashMap`).
+- Duplicates are not allowed.
+- Insertion order is not preserved.
+- Heterogeneous objects are allowed (without strict generics).
+- One `null` value is allowed.
+- Implements `Serializable` and `Cloneable` (not `RandomAccess`).
+- Best when frequent operation is search/contains (average O(1)).
+
+> Note: `add(E e)` in `Set` returns:
+> - `true` if element was added
+> - `false` if it was a duplicate
+
+---
+
+### Constructors of HashSet
+
+```java
+HashSet<E> h1 = new HashSet<>();
+HashSet<E> h2 = new HashSet<>(int initialCapacity);
+HashSet<E> h3 = new HashSet<>(int initialCapacity, float loadFactor);
+HashSet<E> h4 = new HashSet<>(Collection<? extends E> c);
+```
+
+### Constructor Behavior
+
+1. `new HashSet<>()`
+   - Default initial capacity = `16`
+   - Default load factor (fill ratio) = `0.75`
+
+2. `new HashSet<>(initialCapacity)`
+   - Custom initial capacity
+   - Default load factor = `0.75`
+
+3. `new HashSet<>(initialCapacity, loadFactor)`
+   - Custom initial capacity + custom load factor
+
+4. `new HashSet<>(collection)`
+   - Creates HashSet from another collection (inter-conversion)
+
+---
+
+### One Demo: Set + HashSet Properties + Constructors
+
+```java
+import java.io.Serializable;
+import java.util.*;
+
+public class HashSetAllInOneDemo {
+    public static void main(String[] args) {
+        // Constructors
+        HashSet<Object> h1 = new HashSet<>();
+        HashSet<String> h2 = new HashSet<>(32);
+        HashSet<Integer> h3 = new HashSet<>(16, 0.75f);
+        HashSet<String> h4 = new HashSet<>(Arrays.asList("A", "B", "A", "C"));
+
+        // Interface checks
+        System.out.println(h1 instanceof Serializable); // true
+        System.out.println(h1 instanceof Cloneable);    // true
+        System.out.println(h1 instanceof RandomAccess); // false
+
+        // Add behavior
+        System.out.println(h1.add("Durga"));  // true
+        System.out.println(h1.add(10));       // true (heterogeneous if Object)
+        System.out.println(h1.add(null));     // true
+        System.out.println(h1.add("Durga"));  // false (duplicate)
+
+        // Collection methods (Set has no new methods)
+        System.out.println("HashSet: " + h1);
+        System.out.println("Contains 10? " + h1.contains(10));
+        System.out.println("Size: " + h1.size());
+
+        // Remove
+        h1.remove(10);
+        System.out.println("After remove(10): " + h1);
+
+        // Iteration
+        System.out.print("Iterating: ");
+        for (Object o : h1) {
+            System.out.print(o + " ");
+        }
+        System.out.println();
+
+        // From collection constructor: duplicates removed automatically
+        System.out.println("h4 from collection: " + h4); // [A, B, C] (order not guaranteed)
+
+        // Basic set operations
+        Set<Integer> s1 = new HashSet<>(Arrays.asList(1, 2, 3, 4));
+        Set<Integer> s2 = new HashSet<>(Arrays.asList(3, 4, 5, 6));
+
+        Set<Integer> union = new HashSet<>(s1);
+        union.addAll(s2);
+
+        Set<Integer> intersection = new HashSet<>(s1);
+        intersection.retainAll(s2);
+
+        Set<Integer> difference = new HashSet<>(s1);
+        difference.removeAll(s2);
+
+        System.out.println("Union: " + union);
+        System.out.println("Intersection: " + intersection);
+        System.out.println("Difference: " + difference);
+    }
+}
+```
+
+---
+
+### Set Hierarchy Snapshot
+
+```text
+Collection (1.2)
+  -> Set (1.2)
+      -> HashSet (1.2)
+          -> LinkedHashSet (1.4)
+      -> SortedSet (1.2)
+          -> NavigableSet (1.6)
+              -> TreeSet (1.2)
+```
+
+<!-- ...existing code... -->
+<!-- ...existing code... -->
+
+### Demo Program for HashSet (Durga-style)
+
+```java
+import java.util.HashSet;
+
+public class HashSetDemo {
+    public static void main(String[] args) {
+        HashSet<Object> h = new HashSet<>();
+
+        h.add("B");
+        h.add("C");
+        h.add("D");
+        h.add("Z");
+        h.add(null);
+        h.add(10);
+
+        // Duplicate insert -> false
+        System.out.println(h.add("Z")); // false
+
+        // Order is not guaranteed
+        System.out.println(h); // Example: [null, D, B, C, 10, Z]
+    }
+}
+```
+
+**What this proves:**
+- Duplicates are not allowed (`add("Z")` second time returns `false`)
+- `null` is allowed (one null)
+- Heterogeneous values are possible with `HashSet<Object>`
+- Insertion order is not preserved
+
+---
+
+### Load Factor / Fill Ratio (HashSet)
+
+`HashSet` is internally backed by a `HashMap`.
+
+- **Initial Capacity**: number of buckets initially allocated.
+- **Load Factor**: threshold percentage to trigger resize.
+- Default load factor = **0.75**
+
+Resize threshold formula:
+
+```text
+threshold = capacity * loadFactor
+```
+
+Example with default values:
+
+```text
+capacity = 16
+loadFactor = 0.75
+threshold = 12
+```
+
+When element count crosses threshold, internal table grows (rehash happens).
+
+> Correct understanding: load factor does **not** create a “new HashSet object”; it triggers internal rehash/resize of the backing table.
+
+---
+
+### Constructor + Load Factor Example
+
+```java
+import java.util.HashSet;
+
+public class HashSetLoadFactorDemo {
+    public static void main(String[] args) {
+        HashSet<Integer> h1 = new HashSet<>();            // cap=16, lf=0.75
+        HashSet<Integer> h2 = new HashSet<>(32);          // cap=32, lf=0.75
+        HashSet<Integer> h3 = new HashSet<>(32, 0.50f);   // cap=32, lf=0.50
+
+        for (int i = 1; i <= 20; i++) {
+            h1.add(i);
+            h2.add(i);
+            h3.add(i);
+        }
+
+        System.out.println("h1 size: " + h1.size());
+        System.out.println("h2 size: " + h2.size());
+        System.out.println("h3 size: " + h3.size());
+    }
+}
+
+---
+
+## LinkedHashSet (Detailed)
+
+### Overview
+
+`LinkedHashSet` is a child class of `HashSet` introduced in **Java 1.4**.
+
+It combines the properties of `HashSet` (no duplicates, hash table performance) with the ordering property of `LinkedList` (insertion order preservation).
+
+### How It Works
+
+`LinkedHashSet` uses:
+- **Hash Table** for efficient searching and storage (like `HashSet`)
+- **Doubly Linked List** to maintain insertion order (like `LinkedList`)
+
+This hybrid approach gives you both:
+- **Fast search performance** (~O(1) average)
+- **Predictable iteration order** (insertion order)
+
+### Key Characteristics of LinkedHashSet
+
+1. **No Duplicates** - Like `HashSet`, duplicates are automatically rejected
+2. **Preserves Insertion Order** - Unlike `HashSet`, the order in which elements were added is maintained
+3. **Hash Table + Linked List** - Internally uses both structures for optimal performance and ordering
+4. **Single Null Value** - One `null` is allowed (same as `HashSet`)
+5. **Heterogeneous Objects** - Allowed without strict generics
+6. **Not Thread-Safe** - Like `HashSet`, synchronization is not built-in
+7. **Implements Serializable and Cloneable** - Can be copied and persisted
+
+### Constructors of LinkedHashSet
+
+```java
+LinkedHashSet<E> lhs1 = new LinkedHashSet<>();
+LinkedHashSet<E> lhs2 = new LinkedHashSet<>(int initialCapacity);
+LinkedHashSet<E> lhs3 = new LinkedHashSet<>(int capacity, float loadFactor);
+LinkedHashSet<E> lhs4 = new LinkedHashSet<>(Collection<? extends E> c);
+```
+
+### Constructor Details
+
+1. `new LinkedHashSet<>()`
+   - Default initial capacity = `16`
+   - Default load factor = `0.75`
+
+2. `new LinkedHashSet<>(initialCapacity)`
+   - Custom initial capacity
+   - Default load factor = `0.75`
+
+3. `new LinkedHashSet<>(capacity, loadFactor)`
+   - Custom capacity and load factor for fine-tuned performance
+
+4. `new LinkedHashSet<>(collection)`
+   - Creates LinkedHashSet from another collection
+   - Preserves the order of items added from the collection
+
+### Comparison: HashSet vs LinkedHashSet
+
+| Feature | HashSet | LinkedHashSet |
+|---|---|---|
+| **Child Class of** | `AbstractSet` | `HashSet` |
+| **Version** | Java 1.2 | Java 1.4 |
+| **Underlying Structure** | Hash Table | Hash Table + Doubly Linked List |
+| **Insertion Order** | Not preserved | Preserved |
+| **Duplicates** | Not allowed | Not allowed |
+| **Performance** | Fast (~O(1)) | Fast (~O(1) with slight overhead) |
+| **Memory** | Lower overhead | Higher (extra linked list pointers) |
+| **Iteration Order** | Unpredictable | Insertion order |
+| **Use Case** | Random access, fast unique collection | Need unique elements in order |
+
+### Comprehensive LinkedHashSet Example (All Functionality)
+
+```java
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.LinkedHashSet;
+import java.util.Set;
+
+public class LinkedHashSetComprehensiveDemo {
+    public static void main(String[] args) {
+        System.out.println("========== LINKEDHASHSET COMPREHENSIVE DEMO ==========\n");
+
+        // Step 1: Create LinkedHashSet using different constructors
+        System.out.println("Step 1 - Constructors:");
+        Set<Integer> lhs1 = new LinkedHashSet<>();                    // Default
+        Set<Integer> lhs2 = new LinkedHashSet<>(32);                  // With capacity
+        Set<Integer> lhs3 = new LinkedHashSet<>(
+            Arrays.asList(50, 40, 30, 40, 50, 20)                     // From collection
+        );
+        System.out.println("Empty LinkedHashSet: " + lhs1);
+        System.out.println("From collection: " + lhs3); // [50, 40, 30, 20] - duplicates removed
+        System.out.println();
+
+        // Step 2: Add Elements - Demonstrate insertion order preservation
+        System.out.println("Step 2 - Adding Elements (insertion order preserved):");
+        Set<String> languages = new LinkedHashSet<>();
+        languages.add("Java");
+        languages.add("Python");
+        languages.add("C++");
+        languages.add("Go");
+        languages.add(null);        // One null allowed
+        languages.add("JavaScript");
+        System.out.println("After adding: " + languages);
+        System.out.println("Size: " + languages.size());
+        System.out.println();
+
+        // Step 3: Try Adding Duplicates - Will be ignored
+        System.out.println("Step 3 - Adding Duplicates (rejected):");
+        boolean added1 = languages.add("Java");
+        boolean added2 = languages.add("Python");
+        boolean added3 = languages.add("Rust");
+        System.out.println("Added 'Java' (duplicate)? " + added1);    // false
+        System.out.println("Added 'Python' (duplicate)? " + added2);  // false
+        System.out.println("Added 'Rust' (new)? " + added3);          // true
+        System.out.println("After adding duplicates: " + languages);
+        System.out.println();
+
+        // Step 4: Check Operations
+        System.out.println("Step 4 - Check Operations:");
+        System.out.println("Contains 'Java'? " + languages.contains("Java"));      // true
+        System.out.println("Contains 'Ruby'? " + languages.contains("Ruby"));      // false
+        System.out.println("Contains null? " + languages.contains(null));          // true
+        System.out.println("Is empty? " + languages.isEmpty());                    // false
+        System.out.println();
+
+        // Step 5: Remove Operations
+        System.out.println("Step 5 - Remove Operations:");
+        languages.remove("Python");
+        System.out.println("After remove('Python'): " + languages);
+        languages.remove(null);
+        System.out.println("After remove(null): " + languages);
+        System.out.println();
+
+        // Step 6: Forward Iteration - Shows insertion order
+        System.out.println("Step 6 - Forward Iteration (insertion order):");
+        System.out.print("Iterating: ");
+        for (String lang : languages) {
+            System.out.print(lang + " ");
+        }
+        System.out.println();
+        System.out.println();
+
+        // Step 7: Iterator with Safe Removal
+        System.out.println("Step 7 - Safe Removal During Iteration:");
+        System.out.println("Before iterator removal: " + languages);
+        Iterator<String> it = languages.iterator();
+        while (it.hasNext()) {
+            String lang = it.next();
+            if (lang.length() <= 2) {  // Remove short language names
+                it.remove();
+                System.out.println("  Removed: " + lang);
+            }
+        }
+        System.out.println("After iterator removal: " + languages);
+        System.out.println();
+
+        // Step 8: Comparison with HashSet - Order difference
+        System.out.println("Step 8 - Comparison: HashSet vs LinkedHashSet");
+        int[] nums = {5, 2, 8, 2, 9, 5, 1};
+        
+        Set<Integer> hashSet = new HashSet<>();
+        Set<Integer> linkedHashSet = new LinkedHashSet<>();
+        for (int num : nums) {
+            hashSet.add(num);
+            linkedHashSet.add(num);
+        }
+        
+        System.out.println("HashSet (random order):      " + hashSet);
+        System.out.println("LinkedHashSet (insert order): " + linkedHashSet); // [5, 2, 8, 9, 1]
+        System.out.println();
+
+        // Step 9: Clear Operation
+        System.out.println("Step 9 - Clear Operation:");
+        Set<String> temp = new LinkedHashSet<>(Arrays.asList("A", "B", "C"));
+        System.out.println("Before clear: " + temp);
+        temp.clear();
+        System.out.println("After clear: " + temp);
+        System.out.println("Is empty? " + temp.isEmpty());
+        System.out.println();
+
+        // Step 10: Real-World Use Case - Recent Items Cache
+        System.out.println("Step 10 - Real-World: Recent Items Cache");
+        Set<String> recentViews = new LinkedHashSet<>();
+        recentViews.add("Product-101");
+        recentViews.add("Product-505");
+        recentViews.add("Product-202");
+        recentViews.add("Product-101");  // User views again - still maintains order
+        recentViews.add("Product-303");
+        recentViews.add("Product-404");
+        
+        // Simulate limiting to 5 most recent
+        if (recentViews.size() > 5) {
+            String oldest = recentViews.iterator().next();
+            recentViews.remove(oldest);
+        }
+        
+        System.out.println("Recent products (newest first when reversed): " + recentViews);
+        System.out.println();
+
+        // Step 11: Set Operations - Union, Intersection, Difference
+        System.out.println("Step 11 - Set Operations:");
+        Set<Integer> set1 = new LinkedHashSet<>(Arrays.asList(1, 2, 3, 4));
+        Set<Integer> set2 = new LinkedHashSet<>(Arrays.asList(3, 4, 5, 6));
+        
+        // Union
+        Set<Integer> union = new LinkedHashSet<>(set1);
+        union.addAll(set2);
+        System.out.println("Set1: " + set1);
+        System.out.println("Set2: " + set2);
+        System.out.println("Union: " + union);
+        
+        // Intersection
+        Set<Integer> intersection = new LinkedHashSet<>(set1);
+        intersection.retainAll(set2);
+        System.out.println("Intersection: " + intersection);
+        
+        // Difference
+        Set<Integer> difference = new LinkedHashSet<>(set1);
+        difference.removeAll(set2);
+        System.out.println("Difference (Set1-Set2): " + difference);
+        System.out.println();
+
+        // Step 12: Summary Table
+        System.out.println("========== SUMMARY ==========");
+        System.out.println("✓ No duplicates - Automatically rejected");
+        System.out.println("✓ Insertion order - Preserved like LinkedList");
+        System.out.println("✓ Fast operations - O(1) add/remove/contains");
+        System.out.println("✓ Null support - One null value allowed");
+        System.out.println("✓ Iterator safe - Can remove during iteration");
+        System.out.println("✓ Set operations - Union, intersection, difference");
+        System.out.println("✓ Real-world use - Caching, recent items, ordered unique data");
+    }
+}
+
+/* Output:
+========== LINKEDHASHSET COMPREHENSIVE DEMO ==========
+
+Step 1 - Constructors:
+Empty LinkedHashSet: []
+From collection: [50, 40, 30, 20]
+
+Step 2 - Adding Elements (insertion order preserved):
+After adding: [Java, Python, C++, Go, null, JavaScript]
+Size: 6
+
+Step 3 - Adding Duplicates (rejected):
+Added 'Java' (duplicate)? false
+Added 'Python' (duplicate)? false
+Added 'Rust' (new)? true
+After adding duplicates: [Java, Python, C++, Go, null, JavaScript, Rust]
+
+Step 4 - Check Operations:
+Contains 'Java'? true
+Contains 'Ruby'? false
+Contains null? true
+Is empty? false
+
+Step 5 - Remove Operations:
+After remove('Python'): [Java, C++, Go, null, JavaScript, Rust]
+After remove(null): [Java, C++, Go, JavaScript, Rust]
+
+Step 6 - Forward Iteration (insertion order):
+Iterating: Java C++ Go JavaScript Rust
+
+Step 7 - Safe Removal During Iteration:
+Before iterator removal: [Java, C++, Go, JavaScript, Rust]
+  Removed: Go
+After iterator removal: [Java, C++, JavaScript, Rust]
+
+Step 8 - Comparison: HashSet vs LinkedHashSet
+HashSet (random order):      [1, 2, 5, 8, 9]
+LinkedHashSet (insert order): [5, 2, 8, 9, 1]
+
+Step 9 - Clear Operation:
+Before clear: [A, B, C]
+After clear: []
+Is empty? true
+
+Step 10 - Real-World: Recent Items Cache
+Recent products (newest first when reversed): [Product-505, Product-202, Product-101, Product-303, Product-404]
+
+Step 11 - Set Operations:
+Set1: [1, 2, 3, 4]
+Set2: [3, 4, 5, 6]
+Union: [1, 2, 3, 4, 5, 6]
+Intersection: [3, 4]
+Difference (Set1-Set2): [1, 2]
+
+========== SUMMARY ==========
+✓ No duplicates - Automatically rejected
+✓ Insertion order - Preserved like LinkedList
+✓ Fast operations - O(1) add/remove/contains
+✓ Null support - One null value allowed
+✓ Iterator safe - Can remove during iteration
+✓ Set operations - Union, intersection, difference
+✓ Real-world use - Caching, recent items, ordered unique data
+*/
+```
+
+### Key Differences from HashSet
+
+1. **Order Guarantee**
+   - `HashSet`: No order guaranteed
+   - `LinkedHashSet`: Insertion order guaranteed
+
+2. **Performance Characteristics**
+   - Both have O(1) average performance for add/remove/contains
+   - `LinkedHashSet` has slightly more memory overhead due to linked list
+
+3. **Use Cases**
+   - `HashSet`: When order doesn't matter, max performance needed
+   - `LinkedHashSet`: When you need unique elements in order (caching, recently used items)
+
+### When to Use LinkedHashSet
+
+Use `LinkedHashSet` when you need:
+
+1. **Unique Elements** - No duplicates allowed
+2. **Insertion Order** - Elements appear in the order they were added
+3. **Predictable Iteration** - You want consistent ordering across runs
+4. **Fast Performance** - O(1) add/remove/contains operations
+5. **Real-World Examples**:
+   - Browser history (most recent first)
+   - Recently used files
+   - Cache of unique, ordered items
+   - Maintaining insertion sequence of unique values
+   - Log entries with unique identifiers
+
+### Best Practices
+
+1. **Use when order matters** with unique elements
+2. **Prefer over TreeSet** if you don't need sorting
+3. **Consider memory** - linked list adds overhead
+4. **For caching**, it's ideal because it maintains order while preventing duplicates
+5. **Thread-safe wrapper** if needed:
+   ```java
+   Set<String> syncSet = Collections.synchronizedSet(new LinkedHashSet<>());
+   ```
+
+### Quick Takeaways
+
+1. **LinkedHashSet = HashSet + Insertion Order**
+2. **Child class of HashSet** - Inherits all its behavior
+3. **Introduced in Java 1.4** - Newer than HashSet (1.2)
+4. **Hybrid performance** - Hash table speed + linked list ordering
+5. **Perfect for caching** - Maintains insertion order, prevents duplicates
+6. **No duplicates allowed** - Same as HashSet
+7. **Slightly slower than HashSet** - But not significantly
+8. **Ideal for maintaining sequences** - When order and uniqueness both matter
+9. **Single null allowed** - Same as HashSet
+10. **O(1) operations** - Add, remove, contains all average O(1)
+
+---
+
+## SortedSet Interface (Detailed)
+
+### Overview
+
+`SortedSet` is a child interface of `Set` introduced in **Java 1.2**.
+
+It represents a set where **all elements are stored in sorted order** based on either natural sorting or a custom `Comparator`.
+
+Unlike regular `Set` implementations (like `HashSet`), where there is no concept of "first" or "last" element, a `SortedSet` guarantees that elements are ordered.
+
+### Key Characteristics of SortedSet
+
+1. **No Duplicates** - Like all sets, duplicates are not allowed
+2. **Sorted Storage** - Elements are automatically maintained in sorted order
+3. **Has First and Last** - You can identify the lowest and highest elements
+4. **Range Operations** - Can retrieve subsets based on ranges
+5. **Comparator-Based** - Uses natural order or a custom comparator
+6. **Is an Interface** - Not directly instantiated; use `TreeSet` implementation
+
+### Core Methods of SortedSet
+
+| Method | Return Type | Purpose | Example |
+|--------|-------------|---------|---------|
+| `first()` | `E` | Returns the lowest element | `first()` -> 1 |
+| `last()` | `E` | Returns the highest element | `last()` -> 115 |
+| `headSet(E toElement)` | `SortedSet<E>` | Returns elements < toElement | `headSet(104)` -> {1, 2, 3} |
+| `tailSet(E fromElement)` | `SortedSet<E>` | Returns elements >= fromElement | `tailSet(104)` -> {104, 107, 110, 115} |
+| `subSet(E from, E to)` | `SortedSet<E>` | Returns elements from (inclusive) to (exclusive) | `subSet(103, 110)` -> {103, 104, 107} |
+| `comparator()` | `Comparator<? super E>` | Returns comparator used, null if natural order | Returns the sorting strategy |
+
+### Difference Between Set and SortedSet
+
+| Aspect | Set | SortedSet |
+|--------|-----|-----------|
+| **Order** | No guaranteed order | Always sorted |
+| **First/Last** | No concept of first or last | Clear first and last elements |
+| **Example** | {5, 1, 3} ≈ {3, 1, 5} | {1, 3, 5} always in this order |
+| **Methods** | Basic collection methods only | Additional range and sorting methods |
+| **Implementation** | HashSet, LinkedHashSet, etc. | TreeSet |
+| **Use Case** | Unique elements (any order) | Unique elements (sorted order) |
+
+### Comprehensive SortedSet Example (All Functionality)
+
+```java
+import java.util.Arrays;
+import java.util.SortedSet;
+import java.util.TreeSet;
+import java.util.Comparator;
+import java.util.Iterator;
+
+public class SortedSetComprehensiveDemo {
+    public static void main(String[] args) {
+        System.out.println("========== SORTEDSET COMPREHENSIVE DEMO ==========\n");
+
+        // Step 1: Create SortedSet (TreeSet is the implementation)
+        System.out.println("Step 1 - Creating SortedSet (using TreeSet):");
+        SortedSet<Integer> numbers = new TreeSet<>();
+        
+        // Add elements in random order - will be sorted automatically
+        numbers.add(107);
+        numbers.add(100);
+        numbers.add(115);
+        numbers.add(103);
+        numbers.add(104);
+        numbers.add(101);
+        numbers.add(110);
+        
+        System.out.println("After adding elements: " + numbers);
+        // Output: [100, 101, 103, 104, 107, 110, 115] - automatically sorted!
+        System.out.println();
+
+        // Step 2: Try Adding Duplicates - Will be ignored
+        System.out.println("Step 2 - Adding Duplicates (rejected):");
+        boolean added = numbers.add(104);
+        System.out.println("Added duplicate 104? " + added); // false
+        System.out.println("Current set: " + numbers);
+        System.out.println();
+
+        // Step 3: first() and last() methods
+        System.out.println("Step 3 - First and Last Elements:");
+        System.out.println("first() - lowest element: " + numbers.first());   // 100
+        System.out.println("last() - highest element: " + numbers.last());    // 115
+        System.out.println();
+
+        // Step 4: headSet(E toElement) - Elements < parameter
+        System.out.println("Step 4 - headSet(104) - All elements < 104:");
+        SortedSet<Integer> head = numbers.headSet(104);
+        System.out.println("headSet(104): " + head);  // [100, 101, 103]
+        System.out.println();
+
+        // Step 5: tailSet(E fromElement) - Elements >= parameter
+        System.out.println("Step 5 - tailSet(104) - All elements >= 104:");
+        SortedSet<Integer> tail = numbers.tailSet(104);
+        System.out.println("tailSet(104): " + tail);  // [104, 107, 110, 115]
+        System.out.println();
+
+        // Step 6: subSet(E from, E to) - from (inclusive) to (exclusive)
+        System.out.println("Step 6 - subSet(103, 110) - Elements >= 103 and < 110:");
+        SortedSet<Integer> subSet = numbers.subSet(103, 110);
+        System.out.println("subSet(103, 110): " + subSet);  // [103, 104, 107]
+        System.out.println();
+
+        // Step 7: comparator() method
+        System.out.println("Step 7 - comparator() method:");
+        Comparator<? super Integer> comp = numbers.comparator();
+        System.out.println("Comparator used: " + comp);
+        // Output: null (because using default/natural order)
+        System.out.println("Natural order? " + (comp == null ? "Yes" : "No"));
+        System.out.println();
+
+        // Step 8: Check Operations
+        System.out.println("Step 8 - Check Operations:");
+        System.out.println("Contains 104? " + numbers.contains(104));      // true
+        System.out.println("Contains 200? " + numbers.contains(200));      // false
+        System.out.println("Size: " + numbers.size());                      // 7
+        System.out.println("Is empty? " + numbers.isEmpty());              // false
+        System.out.println();
+
+        // Step 9: Remove Operations
+        System.out.println("Step 9 - Remove Operations:");
+        System.out.println("Before remove: " + numbers);
+        numbers.remove(110);
+        System.out.println("After remove(110): " + numbers);
+        System.out.println();
+
+        // Step 10: Iterator - maintains sorted order
+        System.out.println("Step 10 - Iteration (in sorted order):");
+        System.out.print("Iterating forward: ");
+        for (Integer num : numbers) {
+            System.out.print(num + " ");
+        }
+        System.out.println();
+        System.out.println();
+
+        // Step 11: String SortedSet with Custom Data
+        System.out.println("Step 11 - SortedSet with Strings (alphabetical order):");
+        SortedSet<String> languages = new TreeSet<>();
+        languages.add("Python");
+        languages.add("Java");
+        languages.add("Go");
+        languages.add("Rust");
+        languages.add("C++");
+        
+        System.out.println("Languages (alphabetically sorted): " + languages);
+        System.out.println("First: " + languages.first());    // C++
+        System.out.println("Last: " + languages.last());      // Rust
+        System.out.println("headSet('Java'): " + languages.headSet("Java"));   // [C++, Go]
+        System.out.println("tailSet('Java'): " + languages.tailSet("Java"));   // [Java, Python, Rust]
+        System.out.println("subSet('Go', 'Rust'): " + languages.subSet("Go", "Rust")); // [Go, Java, Python]
+        System.out.println();
+
+        // Step 12: Custom Comparator (Reverse order)
+        System.out.println("Step 12 - Custom Comparator (Descending order):");
+        SortedSet<Integer> descending = new TreeSet<>(Comparator.reverseOrder());
+        descending.addAll(Arrays.asList(50, 30, 70, 20, 10, 90, 60));
+        
+        System.out.println("Descending order: " + descending);  // [90, 70, 60, 50, 30, 20, 10]
+        System.out.println("first() in descending: " + descending.first());   // 90 (highest)
+        System.out.println("last() in descending: " + descending.last());     // 10 (lowest)
+        System.out.println();
+
+        // Step 13: View Operations - subsets modify original
+        System.out.println("Step 13 - View Operations (Backed Collections):");
+        SortedSet<Integer> base = new TreeSet<>(Arrays.asList(1, 2, 3, 4, 5, 6, 7, 8, 9, 10));
+        System.out.println("Original set: " + base);
+        
+        SortedSet<Integer> view = base.subSet(3, 8);  // [3, 4, 5, 6, 7]
+        System.out.println("View subSet(3, 8): " + view);
+        
+        // Modify view
+        view.remove(5);
+        System.out.println("After removing 5 from view: " + view);
+        System.out.println("Original after view modification: " + base);  // 5 removed from base too!
+        System.out.println();
+
+        // Step 14: Summary Table
+        System.out.println("========== SUMMARY ==========");
+        System.out.println("✓ No duplicates - Automatically rejected");
+        System.out.println("✓ Sorted order - Elements always in order");
+        System.out.println("✓ Has first/last - Clear boundary elements");
+        System.out.println("✓ Range queries - headSet, tailSet, subSet");
+        System.out.println("✓ Natural or custom order - Default or via Comparator");
+        System.out.println("✓ Backed collections - subsets reflect original changes");
+        System.out.println("✓ TreeSet implementation - Most common use");
+        System.out.println("✓ Comparator support - Standard or custom ordering");
+    }
+}
+
+/* Output:
+========== SORTEDSET COMPREHENSIVE DEMO ==========
+
+Step 1 - Creating SortedSet (using TreeSet):
+After adding elements: [100, 101, 103, 104, 107, 110, 115]
+
+Step 2 - Adding Duplicates (rejected):
+Added duplicate 104? false
+Current set: [100, 101, 103, 104, 107, 110, 115]
+
+Step 3 - First and Last Elements:
+first() - lowest element: 100
+last() - highest element: 115
+
+Step 4 - headSet(104) - All elements < 104:
+headSet(104): [100, 101, 103]
+
+Step 5 - tailSet(104) - All elements >= 104:
+tailSet(104): [104, 107, 110, 115]
+
+Step 6 - subSet(103, 110) - Elements >= 103 and < 110:
+subSet(103, 110): [103, 104, 107]
+
+Step 7 - comparator() method:
+Comparator used: null
+Natural order? Yes
+
+Step 8 - Check Operations:
+Contains 104? true
+Contains 200? false
+Size: 7
+Is empty? false
+
+Step 9 - Remove Operations:
+Before remove: [100, 101, 103, 104, 107, 110, 115]
+After remove(110): [100, 101, 103, 104, 107, 115]
+
+Step 10 - Iteration (in sorted order):
+Iterating forward: 100 101 103 104 107 115 
+
+Step 11 - SortedSet with Strings (alphabetical order):
+Languages (alphabetically sorted): [C++, Go, Java, Python, Rust]
+First: C++
+Last: Rust
+headSet('Java'): [C++, Go]
+tailSet('Java'): [Java, Python, Rust]
+subSet('Go', 'Rust'): [Go, Java, Python]
+
+Step 12 - Custom Comparator (Descending order):
+Descending order: [90, 70, 60, 50, 30, 20, 10]
+first() in descending: 90 (highest)
+last() in descending: 10 (lowest)
+
+Step 13 - View Operations (Backed Collections):
+Original set: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+View subSet(3, 8): [3, 4, 5, 6, 7]
+After removing 5 from view: [3, 4, 6, 7]
+Original after view modification: [1, 2, 3, 4, 6, 7, 8, 9, 10]
+
+========== SUMMARY ==========
+✓ No duplicates - Automatically rejected
+✓ Sorted order - Elements always in order
+✓ Has first/last - Clear boundary elements
+✓ Range queries - headSet, tailSet, subSet
+✓ Natural or custom order - Default or via Comparator
+✓ Backed collections - subsets reflect original changes
+✓ TreeSet implementation - Most common use
+✓ Comparator support - Standard or custom ordering
+*/
+```
+
+### When to Use SortedSet
+
+Use `SortedSet` when you need:
+
+1. **Unique Elements** - No duplicates allowed
+2. **Sorted Order** - Elements must be arranged in order
+3. **Range Queries** - Need to retrieve subsets by range
+4. **Clear Boundaries** - Need first/last element access
+5. **Real-World Examples**:
+   - Student records sorted by roll number
+   - Employee names in alphabetical order
+   - Leaderboard with unique players
+   - Range-based data retrieval (e.g., scores between 80-90)
+   - Maintaining sorted inventory
+
+### Quick Takeaways
+
+1. **SortedSet is about sorting** - Elements are always ordered
+2. **Child interface of Set** - Inherits all Set properties
+3. **TreeSet is the implementation** - Most common realization
+4. **Six additional methods** - first(), last(), headSet(), tailSet(), subSet(), comparator()
+5. **Range operations powerful** - headSet, tailSet, subSet for efficient queries
+6. **Natural or custom order** - Supports both default and custom comparators
+7. **Backed collections** - Subsets reflect changes in original
+8. **No duplicates** - Same as all sets
+9. **O(log n) operations** - Not as fast as HashSet but sorted guarantee
+10. **Perfect for leaderboards** - Sorted unique rankings or scores
+
+---
+
+## TreeSet Class (Detailed)
+
+### Overview
+
+`TreeSet` is the primary implementation of the `SortedSet` interface, introduced in **Java 1.2**.
+
+It uses a **Balanced Binary Search Tree** (Red-Black Tree) internally to maintain elements in sorted order with O(log n) performance for add/remove/contains operations.
+
+### Key Characteristics of TreeSet
+
+1. **Underlying Structure** - Balanced Tree (Red-Black Tree)
+2. **No Duplicates** - Like all sets, duplicates are automatically rejected
+3. **Insertion Order NOT Preserved** - Unlike LinkedHashSet or ArrayList
+4. **Sorted Order** - Elements are always maintained in sorted order
+5. **No Heterogeneous Objects** - Cannot mix different data types (e.g., Integer and String together)
+   - Throws `ClassCastException` if types conflict
+   - **Note**: Only TreeSet and TreeMap have this restriction in entire Collection Framework
+6. **Null Handling is Complex** - Special behavior with null values
+7. **Comparator Support** - Supports both natural sorting and custom comparators
+
+### Constructors of TreeSet
+
+| Constructor | Purpose |
+|---|---|
+| `TreeSet()` | Creates empty set with default natural sorting order |
+| `TreeSet(Comparator<? super E> comparator)` | Creates empty set with custom comparator |
+| `TreeSet(Collection<? extends E> c)` | Creates set from collection, uses natural order |
+| `TreeSet(SortedSet<E> s)` | Creates set from another SortedSet |
+
+### Null Handling in TreeSet (Important!)
+
+**Empty TreeSet:**
+- Can add `null` as the first element (no comparison needed)
+- `set.add(null)` returns `true`
+
+**Non-Empty TreeSet:**
+- Adding `null` throws `NullPointerException` (needs to compare null with existing elements)
+- Cannot determine where null belongs in sorted order
+
+**After Adding Null:**
+- If null is the first element, adding any other element throws `NullPointerException`
+- Cannot compare new element with null
+
+### Comprehensive TreeSet Example (All Functionality)
+
+```java
+import java.util.Arrays;
+import java.util.Comparator;
+import java.util.Iterator;
+import java.util.SortedSet;
+import java.util.TreeSet;
+
+public class TreeSetComprehensiveDemo {
+    public static void main(String[] args) {
+        System.out.println("========== TREESET COMPREHENSIVE DEMO ==========\n");
+
+        // Step 1: TreeSet with Default Natural Sorting (Strings)
+        System.out.println("Step 1 - TreeSet with Default Natural Sorting (Strings):");
+        TreeSet<String> languages = new TreeSet<>();
+        languages.add("Python");
+        languages.add("A");
+        languages.add("Java");
+        languages.add("B");
+        languages.add("L");
+        languages.add("J");
+        languages.add("a");  // lowercase 'a' comes after uppercase
+        
+        System.out.println("Added in order: Python, A, Java, B, L, J, a");
+        System.out.println("TreeSet output: " + languages);
+        // Output: [A, B, J, L, Python, a] - uppercase before lowercase in ASCII
+        System.out.println("Note: Uppercase letters (A=65) < lowercase letters (a=97) in ASCII\n");
+
+        // Step 2: TreeSet with Natural Sorting (Numbers)
+        System.out.println("Step 2 - TreeSet with Default Natural Sorting (Numbers):");
+        TreeSet<Integer> numbers = new TreeSet<>();
+        numbers.add(50);
+        numbers.add(30);
+        numbers.add(70);
+        numbers.add(20);
+        numbers.add(60);
+        
+        System.out.println("Added in order: 50, 30, 70, 20, 60");
+        System.out.println("TreeSet output: " + numbers);
+        // Output: [20, 30, 50, 60, 70] - automatically sorted
+        System.out.println();
+
+        // Step 3: TreeSet with Custom Comparator (Reverse Order)
+        System.out.println("Step 3 - TreeSet with Custom Comparator (Descending):");
+        TreeSet<Integer> descending = new TreeSet<>(Comparator.reverseOrder());
+        descending.addAll(Arrays.asList(50, 30, 70, 20, 60));
+        
+        System.out.println("Descending TreeSet: " + descending);
+        // Output: [70, 60, 50, 30, 20]
+        System.out.println();
+
+        // Step 4: Duplicate Rejection
+        System.out.println("Step 4 - Duplicate Handling:");
+        System.out.println("Before adding duplicate: " + numbers);
+        boolean added = numbers.add(50);  // 50 already exists
+        System.out.println("Added duplicate 50? " + added);  // false
+        System.out.println("After attempt to add 50: " + numbers);
+        System.out.println();
+
+        // Step 5: SortedSet Methods (first, last, etc.)
+        System.out.println("Step 5 - SortedSet Methods:");
+        System.out.println("first(): " + numbers.first());               // 20
+        System.out.println("last(): " + numbers.last());                 // 70
+        System.out.println("headSet(50): " + numbers.headSet(50));       // [20, 30]
+        System.out.println("tailSet(50): " + numbers.tailSet(50));       // [50, 60, 70]
+        System.out.println("subSet(30, 60): " + numbers.subSet(30, 60)); // [30, 50]
+        System.out.println();
+
+        // Step 6: TreeSet from Collection (with natural order)
+        System.out.println("Step 6 - Creating TreeSet from Collection:");
+        TreeSet<String> fromCollection = new TreeSet<>(
+            Arrays.asList("Zebra", "Apple", "Banana", "Apple", "Mango")
+        );
+        System.out.println("Created from: [Zebra, Apple, Banana, Apple, Mango]");
+        System.out.println("TreeSet output: " + fromCollection);
+        // Output: [Apple, Banana, Mango, Zebra] - sorted, duplicates removed
+        System.out.println();
+
+        // Step 7: TreeSet from SortedSet
+        System.out.println("Step 7 - Creating TreeSet from SortedSet:");
+        SortedSet<Integer> sortedNumbers = new TreeSet<>(Arrays.asList(5, 1, 9, 3, 7));
+        TreeSet<Integer> treeFromSorted = new TreeSet<>(sortedNumbers);
+        System.out.println("Source SortedSet: " + sortedNumbers);
+        System.out.println("TreeSet created: " + treeFromSorted);
+        System.out.println();
+
+        // Step 8: homogeneous Objects vs Heterogeneous (ClassCastException)
+        System.out.println("Step 8 - Heterogeneous Objects (Type Safety):");
+        TreeSet<Integer> homogeneous = new TreeSet<>();
+        homogeneous.add(10);
+        homogeneous.add(20);
+        homogeneous.add(30);
+        System.out.println("Valid TreeSet (all integers): " + homogeneous);
+        
+        // Attempting to add different type will fail at runtime
+        try {
+            @SuppressWarnings("unchecked")
+            TreeSet mixed = (TreeSet) homogeneous;
+            mixed.add("String");  // Will cause ClassCastException during comparison
+            System.out.println("Mixed types: " + mixed);
+        } catch (ClassCastException e) {
+            System.out.println("ClassCastException: Cannot add String to Integer TreeSet");
+        }
+        System.out.println();
+
+        // Step 9: Null Handling - Empty TreeSet
+        System.out.println("Step 9 - Null in Empty TreeSet:");
+        TreeSet<String> emptyTree = new TreeSet<>();
+        boolean nullAdded = emptyTree.add(null);
+        System.out.println("Added null to empty TreeSet? " + nullAdded);  // true
+        System.out.println("TreeSet with null: " + emptyTree);
+        System.out.println();
+
+        // Step 10: Null Handling - Try adding to non-empty TreeSet
+        System.out.println("Step 10 - Null in Non-Empty TreeSet (NullPointerException):");
+        TreeSet<String> notEmptyTree = new TreeSet<>(Arrays.asList("A", "B", "C"));
+        System.out.println("TreeSet before null attempt: " + notEmptyTree);
+        try {
+            notEmptyTree.add(null);
+            System.out.println("Added null: " + notEmptyTree);
+        } catch (NullPointerException e) {
+            System.out.println("NullPointerException: Cannot add null to non-empty TreeSet");
+            System.out.println("Reason: Cannot compare null with existing elements");
+        }
+        System.out.println();
+
+        // Step 11: Null as First Element - Try adding other elements
+        System.out.println("Step 11 - Adding Elements After Null (NullPointerException):");
+        TreeSet<String> nullFirst = new TreeSet<>();
+        nullFirst.add(null);
+        System.out.println("TreeSet with null as first: " + nullFirst);
+        try {
+            nullFirst.add("A");
+            System.out.println("Added 'A': " + nullFirst);
+        } catch (NullPointerException e) {
+            System.out.println("NullPointerException: Cannot add 'A' after null");
+            System.out.println("Reason: Cannot compare 'A' with null");
+        }
+        System.out.println();
+
+        // Step 12: Basic Operations
+        System.out.println("Step 12 - Basic Operations:");
+        TreeSet<Integer> ops = new TreeSet<>(Arrays.asList(10, 40, 20, 50, 30));
+        System.out.println("Original: " + ops);
+        
+        System.out.println("Contains 30? " + ops.contains(30));           // true
+        System.out.println("Contains 100? " + ops.contains(100));         // false
+        System.out.println("Size: " + ops.size());                        // 5
+        
+        ops.remove(20);
+        System.out.println("After remove(20): " + ops);
+        
+        ops.clear();
+        System.out.println("After clear(): " + ops + " isEmpty? " + ops.isEmpty());
+        System.out.println();
+
+        // Step 13: Iteration in Sorted Order
+        System.out.println("Step 13 - Iteration (Always in Sorted Order):");
+        TreeSet<Integer> iter = new TreeSet<>(Arrays.asList(100, 20, 50, 10, 80));
+        System.out.println("Original insertion: 100, 20, 50, 10, 80");
+        System.out.println("TreeSet stores as: " + iter);
+        System.out.print("Iterating: ");
+        for (Integer num : iter) {
+            System.out.print(num + " ");
+        }
+        System.out.println();
+        System.out.println();
+
+        // Step 14: Performance Characteristics
+        System.out.println("Step 14 - Performance Characteristics:");
+        System.out.println("Underlying structure: Balanced Binary Search Tree (Red-Black Tree)");
+        System.out.println("add(E e): O(log n)");
+        System.out.println("remove(Object o): O(log n)");
+        System.out.println("contains(Object o): O(log n)");
+        System.out.println("vs HashSet which is O(1), TreeSet is slower but guarantees order");
+        System.out.println();
+
+        // Step 15: Comparator Details
+        System.out.println("Step 15 - Comparator Method:");
+        TreeSet<Integer> natural = new TreeSet<>();
+        TreeSet<Integer> custom = new TreeSet<>(Comparator.reverseOrder());
+        
+        System.out.println("Natural order comparator: " + natural.comparator());  // null
+        System.out.println("Custom reverse comparator: " + custom.comparator());  // comparator instance
+        System.out.println();
+
+        // Step 16: Summary Table
+        System.out.println("========== SUMMARY ==========");
+        System.out.println("✓ Underlying structure: Balanced Tree (Red-Black Tree)");
+        System.out.println("✓ No duplicates allowed");
+        System.out.println("✓ Insertion order NOT preserved");
+        System.out.println("✓ Sorted order ALWAYS maintained");
+        System.out.println("✓ Homogeneous only (no mixed types - ClassCastException)");
+        System.out.println("✓ Null handling complex (empty OK, non-empty throws NPE)");
+        System.out.println("✓ Performance: O(log n) for add/remove/contains");
+        System.out.println("✓ Use when: Sorting + uniqueness + range queries needed");
+        System.out.println("✓ Implements SortedSet: first(), last(), headSet(), tailSet(), subSet()");
+    }
+}
+
+/* Output highlights:
+========== TREESET COMPREHENSIVE DEMO ==========
+
+Step 1 - TreeSet with Default Natural Sorting (Strings):
+Added in order: Python, A, Java, B, L, J, a
+TreeSet output: [A, B, J, L, Python, a]
+Note: Uppercase letters (A=65) < lowercase letters (a=97) in ASCII
+
+Step 2 - TreeSet with Default Natural Sorting (Numbers):
+TreeSet output: [20, 30, 50, 60, 70]
+
+Step 3 - TreeSet with Custom Comparator (Descending):
+Descending TreeSet: [70, 60, 50, 30, 20]
+
+Step 4 - Duplicate Handling:
+Added duplicate 50? false
+
+Step 8 - Heterogeneous Objects (Type Safety):
+ClassCastException: Cannot add String to Integer TreeSet
+
+Step 9 - Null in Empty TreeSet:
+Added null to empty TreeSet? true
+
+Step 10 - Null in Non-Empty TreeSet (NullPointerException):
+NullPointerException: Cannot add null to non-empty TreeSet
+
+Step 11 - Adding Elements After Null (NullPointerException):
+NullPointerException: Cannot add 'A' after null
+
+[...all other outputs follow...]
+
+========== SUMMARY ==========
+✓ Underlying structure: Balanced Tree (Red-Black Tree)
+✓ No duplicates allowed
+✓ Insertion order NOT preserved
+✓ Sorted order ALWAYS maintained
+✓ Homogeneous only (no mixed types - ClassCastException)
+✓ Null handling complex (empty OK, non-empty throws NPE)
+✓ Performance: O(log n) for add/remove/contains
+✓ Use when: Sorting + uniqueness + range queries needed
+✓ Implements SortedSet: first(), last(), headSet(), tailSet(), subSet()
+*/
+```
+
+### Key Differences: HashSet vs TreeSet vs LinkedHashSet
+
+| Feature | HashSet | TreeSet | LinkedHashSet |
+|---------|---------|---------|---------------|
+| **Underlying** | Hash Table | Balanced Tree | Hash Table + Linked List |
+| **Order** | Random | Sorted | Insertion Order |
+| **Duplicates** | No | No | No |
+| **Null Support** | One null | Complex (see above) | One null |
+| **Homogeneous** | Any types | Only one type | Any types |
+| **Performance** | O(1) | O(log n) | O(1) |
+| **Use Case** | Unique, fast | Unique, sorted | Unique, ordered |
+| **Memory** | Less | Balanced tree nodes | Extra linked pointers |
+
+### When to Use TreeSet
+
+Use `TreeSet` when you need:
+
+1. **Unique Elements** - No duplicates allowed
+2. **Sorted Order** - Elements must be in sorted order
+3. **Range Operations** - Need headSet, tailSet, subSet
+4. **First/Last Access** - Frequent first() and last() queries
+5. **Type Safety** - Only homogeneous elements
+6. **Real-World Examples**:
+   - Leaderboard with sorted scores
+   - Sorted inventory with unique items
+   - Range-based queries (e.g., salaries between 50k-100k)
+   - ASCII/Unicode sorted strings
+   - Priority-based unique tasks
+
+### Quick Takeaways
+
+1. **TreeSet = Sorted Set with Red-Black Tree**
+2. **No duplicates** - Automatically rejected
+3. **No insertion order** - Replaced with sorted order
+4. **Red-Black Tree internally** - Balanced for O(log n) operations
+5. **Only homogeneous objects** - Cannot mix types (ClassCastException)
+6. **Null handling tricky** - Empty OK, non-empty throws NPE
+7. **Four constructors** - Default, Custom Comparator, Collection, SortedSet
+8. **SortedSet methods** - first(), last(), headSet(), tailSet(), subSet()
+9. **Slower than HashSet** - O(log n) vs O(1), but maintains order
+10. **Perfect for sorted unique data** - When sorting is essential with uniqueness
+
+---
+
+## Comparable Interface (Detailed)
+
+### Overview
+
+`Comparable` is an interface in the `java.lang` package used to define the **Default Natural Sorting Order (DNSO)** for objects.
+
+It contains only **one method**: `compareTo(Object obj)`
+
+### Key Characteristic
+
+When you use **TreeSet with the default constructor**, the objects must satisfy **two mandatory conditions**:
+
+1. **Homogeneous** - All objects must be of the same type
+2. **Comparable** - The class must implement `Comparable` interface
+
+If either condition is not met, a **ClassCastException** is thrown at runtime.
+
+### The compareTo() Method
+
+```java
+public int compareTo(Object obj)
+```
+
+**Returns:**
+- **Negative value** (typically -1): if this object comes before the parameter object
+- **Positive value** (typically +1): if this object comes after the parameter object
+- **Zero (0)**: if both objects are equal
+
+### Example with String (Implements Comparable)
+
+```java
+"A".compareTo("Z")  // Returns negative (A comes before Z)
+"Z".compareTo("B")  // Returns positive (Z comes after B)
+"A".compareTo("A")  // Returns 0 (equal)
+"A".compareTo(null) // Throws NullPointerException
+```
+
+### Why StringBuffer Fails in TreeSet
+
+StringBuffer **does NOT implement Comparable interface**. While it's homogeneous (all StringBuffer type), it cannot be stored in default TreeSet:
+
+```java
+TreeSet<StringBuffer> set = new TreeSet<>();
+set.add(new StringBuffer("A"));
+set.add(new StringBuffer("B"));
+// Throws: ClassCastException: StringBuffer cannot be cast to Comparable
+```
+
+This happens because TreeSet internally tries to call `compareTo()` which StringBuffer doesn't have.
+
+### Comparable vs Initially Using Default Constructor TreeSet
+
+| Type | Needs Comparable | Example |
+|------|-----------------|---------|
+| String | ✓ Yes (has it) | Works fine, alphabetical order |
+| Integer | ✓ Yes (has it) | Works fine, ascending order |
+| StringBuffer | ✗ No | Fails with ClassCastException |
+| Custom Class | Depends | Need to implement if using TreeSet() |
+
+---
+
+## Comparator Interface (Detailed)
+
+### Overview
+
+`Comparator` is an interface in the `java.util` package used to define **Customized Sorting Order**.
+
+While Comparable is about DNSO, Comparator is about overriding or defining custom sorting.
+
+### Methods in Comparator
+
+| Method | Purpose |
+|--------|---------|
+| `compare(Object obj1, Object obj2)` | **Mandatory** - Defines custom sorting logic |
+| `equals(Object obj)` | **Optional** - Inherited from Object, rarely overridden |
+
+### The compare() Method
+
+```java
+public int compare(Object obj1, Object obj2)
+```
+
+**Returns:**
+- **Negative**: obj1 should come before obj2
+- **Positive**: obj1 should come after obj2
+- **Zero**: obj1 and obj2 are equal
+
+### Key Advantages over Comparable
+
+1. **Non-Comparable Objects** - Can store StringBuffer and other non-comparable objects
+2. **Heterogeneous Objects** - Can store mixed types (String and StringBuffer together) if logic handles it
+3. **Custom Sorting** - Can define multiple different sorting orders
+4. **Doesn't Modify Class** - No need to change the original class
+
+### Comprehensive Comparator Example (All Functionality)
+
+```java
+import java.util.Arrays;
+import java.util.Comparator;
+import java.util.TreeSet;
+
+public class ComparatorComprehensiveDemo {
+    public static void main(String[] args) {
+        System.out.println("========== COMPARATOR COMPREHENSIVE DEMO ==========\n");
+
+        // Step 1: Default Natural Sorting (Comparable)
+        System.out.println("Step 1 - TreeSet with Default Natural Sorting (String):");
+        TreeSet<String> natural = new TreeSet<>();
+        natural.addAll(Arrays.asList("Ganga", "Roza", "Shobharani", "Rajakumari"));
+        System.out.println("Alphabetical (Natural): " + natural);
+        // Output: [Ganga, Rajakumari, Roza, Shobharani]
+        System.out.println();
+
+        // Step 2: Custom Comparator - Reverse Alphabetical (Method 1: Negate)
+        System.out.println("Step 2 - Reverse Alphabetical using Comparator (Negate):");
+        class ReverseComparator1 implements Comparator<String> {
+            @Override
+            public int compare(String s1, String s2) {
+                return -s1.compareTo(s2);  // Negate the result
+            }
+        }
+        TreeSet<String> reverse1 = new TreeSet<>(new ReverseComparator1());
+        reverse1.addAll(Arrays.asList("Ganga", "Roza", "Shobharani", "Rajakumari"));
+        System.out.println("Reverse (Negate method): " + reverse1);
+        // Output: [Shobharani, Roza, Rajakumari, Ganga]
+        System.out.println();
+
+        // Step 3: Custom Comparator - Reverse Alphabetical (Method 2: Swap)
+        System.out.println("Step 3 - Reverse Alphabetical using Comparator (Swap):");
+        class ReverseComparator2 implements Comparator<String> {
+            @Override
+            public int compare(String s1, String s2) {
+                return s2.compareTo(s1);  // Compare s2 against s1
+            }
+        }
+        TreeSet<String> reverse2 = new TreeSet<>(new ReverseComparator2());
+        reverse2.addAll(Arrays.asList("Ganga", "Roza", "Shobharani", "Rajakumari"));
+        System.out.println("Reverse (Swap method): " + reverse2);
+        // Output: [Shobharani, Roza, Rajakumari, Ganga]
+        System.out.println();
+
+        // Step 4: Descending Order for Integers
+        System.out.println("Step 4 - TreeSet<Integer> with Descending Comparator:");
+        class DescendingIntComparator implements Comparator<Integer> {
+            @Override
+            public int compare(Integer i1, Integer i2) {
+                if (i1 < i2) return +1;      // Smaller goes after
+                else if (i1 > i2) return -1; // Larger goes before
+                else return 0;
+            }
+        }
+        TreeSet<Integer> descInt = new TreeSet<>(new DescendingIntComparator());
+        descInt.addAll(Arrays.asList(20, 15, 10, 5, 0, 25));
+        System.out.println("Descending integers: " + descInt);
+        // Output: [25, 20, 15, 10, 5, 0]
+        System.out.println();
+
+        // Step 5: StringBuffer (Non-Comparable) with Comparator
+        System.out.println("Step 5 - TreeSet<StringBuffer> using Comparator:");
+        class StringBufferComparator implements Comparator<StringBuffer> {
+            @Override
+            public int compare(StringBuffer sb1, StringBuffer sb2) {
+                return sb1.toString().compareTo(sb2.toString());
+            }
+        }
+        TreeSet<StringBuffer> sbSet = new TreeSet<>(new StringBufferComparator());
+        sbSet.add(new StringBuffer("Charlie"));
+        sbSet.add(new StringBuffer("Alice"));
+        sbSet.add(new StringBuffer("Bob"));
+        System.out.println("StringBuffer (alphabetical): " + sbSet);
+        // Output: [Alice, Bob, Charlie]
+        System.out.println();
+
+        // Step 6: Mixed Types (String & StringBuffer) with Comparator
+        System.out.println("Step 6 - Mixed Types (String & StringBuffer) with Comparator:");
+        class MixedTypeComparator implements Comparator<Object> {
+            @Override
+            public int compare(Object obj1, Object obj2) {
+                String s1 = obj1.toString();
+                String s2 = obj2.toString();
+                return s1.compareTo(s2);
+            }
+        }
+        @SuppressWarnings("unchecked")
+        TreeSet mixed = new TreeSet<>(new MixedTypeComparator());
+        mixed.add("Zebra");
+        mixed.add(new StringBuffer("Apple"));
+        mixed.add("Mango");
+        mixed.add(new StringBuffer("Banana"));
+        System.out.println("Mixed (String + StringBuffer): " + mixed);
+        // Output: [Apple, Banana, Mango, Zebra]
+        System.out.println();
+
+        // Step 7: Multi-Rule Sorting (Length, then Alphabetical)
+        System.out.println("Step 7 - Multi-Rule Sorting (Length first, then Alphabetical):");
+        class LengthThenAlphabetComparator implements Comparator<Object> {
+            @Override
+            public int compare(Object obj1, Object obj2) {
+                String s1 = obj1.toString();
+                String s2 = obj2.toString();
+                
+                // Primary rule: Sort by length
+                if (s1.length() < s2.length()) return -1;
+                else if (s1.length() > s2.length()) return +1;
+                
+                // Secondary rule: If lengths equal, sort alphabetically
+                else return s1.compareTo(s2);
+            }
+        }
+        @SuppressWarnings("unchecked")
+        TreeSet multiRule = new TreeSet<>(new LengthThenAlphabetComparator());
+        multiRule.add("A");
+        multiRule.add(new StringBuffer("ABC"));
+        multiRule.add(new StringBuffer("AA"));
+        multiRule.add("ABCD");
+        multiRule.add("XY");
+        System.out.println("Multi-rule (length then alphabetical): " + multiRule);
+        // Output: [A, AA, XY, ABC, ABCD]
+        System.out.println();
+
+        // Step 8: Various Comparator Tricks
+        System.out.println("Step 8 - Comparator Tricks (Different Return Values):");
+        
+        // Trick 1: Return +1 always (allows duplicates, insertion order)
+        System.out.println("  a) Return +1 always (insertion order, duplicates allowed):");
+        class AlwaysPositiveComparator implements Comparator<Integer> {
+            @Override
+            public int compare(Integer i1, Integer i2) {
+                return +1;  // Always return positive
+            }
+        }
+        TreeSet<Integer> trick1 = new TreeSet<>(new AlwaysPositiveComparator());
+        trick1.addAll(Arrays.asList(20, 15, 10, 15, 20, 5));
+        System.out.println("     Result: " + trick1 + " Size: " + trick1.size());
+        // Duplicates not removed!
+        
+        // Trick 2: Return -1 always (reverse insertion order, duplicates allowed)
+        System.out.println("  b) Return -1 always (reverse insertion order):");
+        class AlwaysNegativeComparator implements Comparator<Integer> {
+            @Override
+            public int compare(Integer i1, Integer i2) {
+                return -1;  // Always return negative
+            }
+        }
+        TreeSet<Integer> trick2 = new TreeSet<>(new AlwaysNegativeComparator());
+        trick2.addAll(Arrays.asList(5, 10, 15, 20));
+        System.out.println("     Result: " + trick2);
+        // Reverse of [5, 10, 15, 20]
+        
+        // Trick 3: Return 0 always (only first element allowed)
+        System.out.println("  c) Return 0 always (only first element allowed):");
+        class AlwaysZeroComparator implements Comparator<Integer> {
+            @Override
+            public int compare(Integer i1, Integer i2) {
+                return 0;  // Always return zero (equal)
+            }
+        }
+        TreeSet<Integer> trick3 = new TreeSet<>(new AlwaysZeroComparator());
+        trick3.addAll(Arrays.asList(5, 10, 15, 20, 25));
+        System.out.println("     Result: " + trick3 + " Size: " + trick3.size());
+        // Only first element (5)
+        System.out.println();
+
+        // Step 9: Case Insensitive String Comparator
+        System.out.println("Step 9 - Case Insensitive String Comparator:");
+        class CaseInsensitiveComparator implements Comparator<String> {
+            @Override
+            public int compare(String s1, String s2) {
+                return s1.compareToIgnoreCase(s2);
+            }
+        }
+        TreeSet<String> caseInsensitive = new TreeSet<>(new CaseInsensitiveComparator());
+        caseInsensitive.addAll(Arrays.asList("java", "PYTHON", "Go", "rust", "C++"));
+        System.out.println("Case insensitive sorted: " + caseInsensitive);
+        // Output: [C++, Go, java, PYTHON, rust]
+        System.out.println();
+
+        // Step 10: Comparator Methods Summary
+        System.out.println("========== COMPARATOR SUMMARY ==========");
+        System.out.println("✓ Enables custom sorting order");
+        System.out.println("✓ Works with non-Comparable classes (StringBuffer)");
+        System.out.println("✓ Allows heterogeneous object storage");
+        System.out.println("✓ Supports multi-rule sorting");
+        System.out.println("✓ Return values control placement:");
+        System.out.println("  - Negative: obj1 before obj2");
+        System.out.println("  - Positive: obj1 after obj2");
+        System.out.println("  - Zero: considered equal");
+        System.out.println("✓ Always implement compare() method only");
+        System.out.println("✓ Perfect for when Comparable is insufficient");
+    }
+}
+
+/* Output highlights:
+========== COMPARATOR COMPREHENSIVE DEMO ==========
+
+Step 1 - TreeSet with Default Natural Sorting (String):
+Alphabetical (Natural): [Ganga, Rajakumari, Roza, Shobharani]
+
+Step 2 - Reverse Alphabetical using Comparator (Negate):
+Reverse (Negate method): [Shobharani, Roza, Rajakumari, Ganga]
+
+Step 3 - Reverse Alphabetical using Comparator (Swap):
+Reverse (Swap method): [Shobharani, Roza, Rajakumari, Ganga]
+
+Step 4 - TreeSet<Integer> with Descending Comparator:
+Descending integers: [25, 20, 15, 10, 5, 0]
+
+Step 5 - TreeSet<StringBuffer> using Comparator:
+StringBuffer (alphabetical): [Alice, Bob, Charlie]
+
+Step 6 - Mixed Types (String & StringBuffer) with Comparator:
+Mixed (String + StringBuffer): [Apple, Banana, Mango, Zebra]
+
+Step 7 - Multi-Rule Sorting (Length first, then Alphabetical):
+Multi-rule (length then alphabetical): [A, AA, XY, ABC, ABCD]
+
+Step 8 - Comparator Tricks (Different Return Values):
+  a) Return +1 always (insertion order, duplicates allowed):
+     Result: [20, 15, 10, 15, 20, 5] Size: 6
+  b) Return -1 always (reverse insertion order):
+     Result: [20, 15, 10, 5]
+  c) Return 0 always (only first element allowed):
+     Result: [5] Size: 1
+
+Step 9 - Case Insensitive String Comparator:
+Case insensitive sorted: [C++, Go, java, PYTHON, rust]
+
+========== COMPARATOR SUMMARY ==========
+[...summary follows...]
+*/
+```
+
+### Comparable vs Comparator Decision Table
+
+| Scenario | When to Use | Example |
+|----------|-------------|---------|
+| **Predefined Class (String, Integer)** | Want default order | Use TreeSet() directly |
+| **Predefined Class** | Want custom order | Use TreeSet(new MyComparator()) |
+| **Non-Comparable Class (StringBuffer)** | Need sorting | Must use Comparator |
+| **Mixed/Heterogeneous Types** | Need to store together | Use Comparator with toString() |
+| **Custom Class** | Define default order | Implement Comparable |
+| **Custom Class** | Define alternative order | Create custom Comparator |
+
+### Quick Takeaways
+
+1. **Comparable = DEFAULT Natural Sorting Order** - Defined by the class itself
+2. **Comparator = CUSTOM Sorting Order** - Define externally as needed
+3. **Two mandatory conditions for TreeSet()**: Homogeneous + Comparable
+4. **Comparator solves problems**: Non-comparable objects, custom sorting, heterogeneous storage
+5. **StringBuffer works with Comparator** - Convert to String using toString()
+6. **compareTo() vs compare()**: Single method vs flexible custom logic
+7. **Negate or Swap**: Two ways to reverse sorting order with Comparator
+8. **Multi-rule sorting**: Primary and secondary rules in one Comparator
+9. **Return tricks**: +1, -1, 0 control exact behavior of TreeSet
+10. **Class Writer & User role**: Writer implements Comparable, User creates Comparator as needed
+
+---
+
+## Custom Class with Comparable and Comparator (Employee Example)
+
+### Scenario
+
+When creating a **custom class** like `Employee`, you need to decide the **default sorting order**.
+
+Since Employee IDs are unique, ID-based sorting is the most logical "natural" order.
+
+However, users might want alternative sorting (e.g., by name or salary).
+
+### Solution Strategy
+
+1. **Class Writer's Responsibility** - Implement `Comparable` for natural order (by ID)
+2. **Class User's Responsibility** - Create custom `Comparator` for alternative sorting (by name, salary, etc.)
+
+### Comprehensive Employee Class Example (All Functionality)
+
+```java
+import java.util.Arrays;
+import java.util.Comparator;
+import java.util.TreeSet;
+
+// Step 1: Define Employee class implementing Comparable (for ID-based sorting)
+class Employee implements Comparable<Employee> {
+    String name;
+    int eid;  // Employee ID
+    
+    public Employee(String name, int eid) {
+        this.name = name;
+        this.eid = eid;
+    }
+    
+    @Override
+    public int compareTo(Employee other) {
+        // Default Natural Sorting Order: By Employee ID (ascending)
+        if (this.eid < other.eid) return -1;
+        else if (this.eid > other.eid) return +1;
+        else return 0;
+    }
+    
+    @Override
+    public String toString() {
+        return name + "-" + eid;
+    }
+}
+
+// Step 2: Custom Comparator for Name-based sorting (alphabetical)
+class NameComparator implements Comparator<Employee> {
+    @Override
+    public int compare(Employee emp1, Employee emp2) {
+        // Custom Sorting Order: By Employee Name (alphabetical)
+        return emp1.name.compareTo(emp2.name);
+    }
+}
+
+// Step 3: Custom Comparator for Reverse ID sorting (descending)
+class ReverseIdComparator implements Comparator<Employee> {
+    @Override
+    public int compare(Employee emp1, Employee emp2) {
+        if (emp1.eid < emp2.eid) return +1;  // Reverse: smaller goes after
+        else if (emp1.eid > emp2.eid) return -1; // Reverse: larger goes before
+        else return 0;
+    }
+}
+
+public class EmployeeComparableComparatorDemo {
+    public static void main(String[] args) {
+        System.out.println("========== EMPLOYEE COMPARABLE & COMPARATOR DEMO ==========\n");
+
+        // Create sample employees
+        Employee[] empArray = {
+            new Employee("Venky", 150),
+            new Employee("Nag", 100),
+            new Employee("Chiru", 50),
+            new Employee("Balayya", 200),
+            new Employee("Ali", 75)
+        };
+
+        // Step 1: Default Natural Sorting (using Comparable - by ID ascending)
+        System.out.println("Step 1 - Default Natural Sorting (Comparable - by ID ascending):");
+        TreeSet<Employee> byId = new TreeSet<>(Arrays.asList(empArray));
+        System.out.println("Creation order: Venky-150, Nag-100, Chiru-50, Balayya-200, Ali-75");
+        System.out.println("TreeSet (by ID): " + byId);
+        // Output: [Chiru-50, Ali-75, Nag-100, Venky-150, Balayya-200]
+        System.out.println("✓ Sorted by Employee ID (Default Natural Order)\n");
+
+        // Step 2: Custom Sorting - By Name (using Comparator)
+        System.out.println("Step 2 - Custom Sorting (Comparator - by Name alphabetical):");
+        TreeSet<Employee> byName = new TreeSet<>(new NameComparator());
+        byName.addAll(Arrays.asList(empArray));
+        System.out.println("TreeSet (by Name): " + byName);
+        // Output: [Ali-75, Balayya-200, Chiru-50, Nag-100, Venky-150]
+        System.out.println("✓ Sorted alphabetically by Employee Name (Custom Order)\n");
+
+        // Step 3: Custom Sorting - By ID Reverse (descending)
+        System.out.println("Step 3 - Custom Sorting (Comparator - by ID descending):");
+        TreeSet<Employee> byIdReverse = new TreeSet<>(new ReverseIdComparator());
+        byIdReverse.addAll(Arrays.asList(empArray));
+        System.out.println("TreeSet (by ID reverse): " + byIdReverse);
+        // Output: [Balayya-200, Venky-150, Nag-100, Ali-75, Chiru-50]
+        System.out.println("✓ Sorted by Employee ID in descending order (Custom Order)\n");
+
+        // Step 4: SortedSet methods work on all sorted sets
+        System.out.println("Step 4 - SortedSet Methods (working on all variants):");
+        System.out.println("By ID - first(): " + byId.first() + ", last(): " + byId.last());
+        System.out.println("By Name - first(): " + byName.first() + ", last(): " + byName.last());
+        System.out.println("By ID Reverse - first(): " + byIdReverse.first() + ", last(): " + byIdReverse.last());
+        System.out.println();
+
+        // Step 5: Duplicate Handling (same ID = duplicate)
+        System.out.println("Step 5 - Duplicate Handling:");
+        TreeSet<Employee> dupTest = new TreeSet<>();
+        dupTest.add(new Employee("Original-Chiru", 50));
+        System.out.println("Added first Chiru-50: " + dupTest);
+        
+        boolean added = dupTest.add(new Employee("Duplicate-Chiru", 50));
+        System.out.println("Try adding another with ID 50? " + added); // false
+        System.out.println("After duplicate attempt: " + dupTest);
+        System.out.println("✓ Duplicate IDs rejected (based on compareTo)\n");
+
+        // Step 6: Iteration maintains sort order
+        System.out.println("Step 6 - Iteration Order (always respects sorting):");
+        System.out.print("By ID forward: ");
+        for (Employee emp : byId) {
+            System.out.print(emp + " ");
+        }
+        System.out.println();
+        System.out.print("By Name forward: ");
+        for (Employee emp : byName) {
+            System.out.print(emp + " ");
+        }
+        System.out.println();
+        System.out.println();
+
+        // Step 7: Contains and Remove operations
+        System.out.println("Step 7 - Contains and Remove Operations:");
+        Employee testEmp = new Employee("Test", 100);
+        System.out.println("Contains (Nag-100)? " + byId.contains(new Employee("AnyName", 100))); // true (only eid matters)
+        
+        byId.remove(new Employee("RemoveMe", 100));  // Removes based on Comparable (ID)
+        System.out.println("After removing ID 100: " + byId);
+        System.out.println();
+
+        // Step 8: Performance Characteristics Summary
+        System.out.println("Step 8 - Performance Characteristics:");
+        System.out.println("Underlying: Balanced Binary Search Tree");
+        System.out.println("add(Employee e): O(log n) - must call compareTo");
+        System.out.println("contains(Employee e): O(log n) - must call compareTo");
+        System.out.println("remove(Employee e): O(log n) - must call compareTo");
+        System.out.println();
+
+        // Step 9: Comparable vs Comparator Summary for Employee
+        System.out.println("========== COMPARABLE VS COMPARATOR (Employee Context) ==========");
+        System.out.println("Comparable (Default Natural Order - by ID):");
+        System.out.println("  - Implemented by Employee class writer");
+        System.out.println("  - Reflects the 'most important' sorting criteria");
+        System.out.println("  - Used: TreeSet<Employee> set = new TreeSet<>();");
+        System.out.println("  - Result: Sorted by ID\n");
+        
+        System.out.println("Comparator (Custom Order - by Name):");
+        System.out.println("  - Created by Employee class user/client");
+        System.out.println("  - Defines alternative sorting when needed");
+        System.out.println("  - Used: TreeSet<Employee> set = new TreeSet<>(new NameComparator());");
+        System.out.println("  - Result: Sorted by Name\n");
+
+        // Step 10: Decision Making
+        System.out.println("========== DECISION MAKING FOR CUSTOM CLASSES ==========");
+        System.out.println("Q: Should my custom class implement Comparable?");
+        System.out.println("A: Yes, if there is ONE most common/natural sorting order.");
+        System.out.println("   For Employee, ID is unique and natural → implement Comparable\n");
+        
+        System.out.println("Q: Should I create a Comparator?");
+        System.out.println("A: Yes, for EACH alternative sorting order users might need.");
+        System.out.println("   Alternative 1: NameComparator (alphabetical by name)");
+        System.out.println("   Alternative 2: ReverseIdComparator (descending by ID)");
+        System.out.println("   Users choose which Comparator when creating TreeSet\n");
+
+        // Step 11: Complete Summary Table
+        System.out.println("========== FEATURE COMPARISON ==========");
+        System.out.println("Feature              | Comparable (Default)    | Comparator (Custom)");
+        System.out.println("-".repeat(75));
+        System.out.println("Purpose              | Default Natural Order   | Custom Sorting Order");
+        System.out.println("Location             | Inside Employee class   | Separate class");
+        System.out.println("Method               | compareTo()             | compare()");
+        System.out.println("Parameters           | 1 (compares with this)  | 2 (compares two objects)");
+        System.out.println("Interface            | java.lang.Comparable    | java.util.Comparator");
+        System.out.println("Implemented By       | Employee class          | NameComparator class");
+        System.out.println("TreeSet Constructor  | TreeSet<E>()            | TreeSet<E>(comparator)");
+        System.out.println("Use Case (Employee)  | Sort by ID              | Sort by Name/Salary/etc");
+        System.out.println();
+
+        System.out.println("========== KEY TAKEAWAYS ==========");
+        System.out.println("✓ Custom class writer defines Comparable for default order");
+        System.out.println("✓ Custom class user creates Comparator for alternatives");
+        System.out.println("✓ Both can coexist for maximum flexibility");
+        System.out.println("✓ Comparable = 'this' vs 'that' | Comparator = 'first' vs 'second'");
+        System.out.println("✓ TreeSet uses compareTo() by default, compare() if Comparator provided");
+        System.out.println("✓ Duplicates determined by compareTo()/compare() result (0 = duplicate)");
+        System.out.println("✓ Interviews: Comparable = writer's choice, Comparator = user's choice");
+    }
+}
+
+/* Output:
+========== EMPLOYEE COMPARABLE & COMPARATOR DEMO ==========
+
+Step 1 - Default Natural Sorting (Comparable - by ID ascending):
+Creation order: Venky-150, Nag-100, Chiru-50, Balayya-200, Ali-75
+TreeSet (by ID): [Chiru-50, Ali-75, Nag-100, Venky-150, Balayya-200]
+✓ Sorted by Employee ID (Default Natural Order)
+
+Step 2 - Custom Sorting (Comparator - by Name alphabetical):
+TreeSet (by Name): [Ali-75, Balayya-200, Chiru-50, Nag-100, Venky-150]
+✓ Sorted alphabetically by Employee Name (Custom Order)
+
+Step 3 - Custom Sorting (Comparator - by ID descending):
+TreeSet (by ID reverse): [Balayya-200, Venky-150, Nag-100, Ali-75, Chiru-50]
+✓ Sorted by Employee ID in descending order (Custom Order)
+
+Step 4 - SortedSet Methods (working on all variants):
+By ID - first(): Chiru-50, last(): Balayya-200
+By Name - first(): Ali-75, last(): Venky-150
+By ID Reverse - first(): Balayya-200, last(): Chiru-50
+
+Step 5 - Duplicate Handling:
+Added first Chiru-50: [Chiru-50]
+Try adding another with ID 50? false
+After duplicate attempt: [Chiru-50]
+✓ Duplicate IDs rejected (based on compareTo)
+
+[...continues with all steps...]
+
+========== KEY TAKEAWAYS ==========
+✓ Custom class writer defines Comparable for default order
+✓ Custom class user creates Comparator for alternatives
+✓ Both can coexist for maximum flexibility
+✓ Comparable = 'this' vs 'that' | Comparator = 'first' vs 'second'
+✓ TreeSet uses compareTo() by default, compare() if Comparator provided
+✓ Duplicates determined by compareTo()/compare() result (0 = duplicate)
+✓ Interviews: Comparable = writer's choice, Comparator = user's choice
+*/
+```
+
+### Interview Question Answer
+
+| Aspect | Answer |
+|--------|--------|
+| **Who implements Comparable?** | The class writer (defines default/natural order) |
+| **Who creates Comparator?** | The class user/client (when they need custom order) |
+| **For Employee class** | Writer implements Comparable (sort by ID), User creates NameComparator (sort by name) |
+| **Benefit** | Maximum flexibility for both standard and custom sorting needs |
+
+---
+
+## Set Implementation Classes Comparison
+
+### Comprehensive Comparison Table
+
+| Property | HashSet | LinkedHashSet | TreeSet |
+|----------|---------|---------------|---------|
+| **Underlying Data Structure** | Hash Table | Hash Table + Linked List | Balanced Binary Search Tree |
+| **Insertion Order Preserved** | ✗ No | ✓ Yes | N/A (Sorted instead) |
+| **Sorted Order Maintained** | ✗ No | ✗ No | ✓ Yes |
+| **Heterogeneous Objects** | ✓ Allowed | ✓ Allowed | ✗ No (unless Comparator provided) |
+| **Duplicate Objects** | ✗ Not allowed | ✗ Not allowed | ✗ Not allowed |
+| **Null Acceptance** | ✓ One null | ✓ One null | ⚠ Conditional (first element only) |
+| **Performance (add/remove/contains)** | O(1) average | O(1) average | O(log n) |
+| **Best Use Case** | Fast unique collection | Unique + ordered insertion | Unique + sorted collection |
+| **Memory Overhead** | Low | Medium (linked list) | Medium (tree nodes) |
+| **Interface Implemented** | Set | Set | SortedSet, NavigableSet |
+
+### Detailed Comparison
+
+#### 1. Underlying Data Structure
+
+- **HashSet**: Hash table → random access, no order
+- **LinkedHashSet**: Hash table + doubly-linked list → maintains insertion order with hash speed
+- **TreeSet**: Red-Black balanced tree → automatically sorted
+
+#### 2. Order Guarantees
+
+```
+HashSet:        [5, 2, 8, 9] or [2, 5, 8, 9] or [9, 8, 5, 2] - random
+LinkedHashSet:  [5, 2, 8, 9] - insertion order preserved
+TreeSet:        [2, 5, 8, 9] - sorted order (ascending for numbers)
+```
+
+#### 3. Null Handling
+
+```java
+// HashSet and LinkedHashSet
+set.add(null);      // ✓ Allowed
+set.add("A");       // ✓ Allowed
+// Result: contains one null and other values
+
+// TreeSet
+TreeSet<String> ts = new TreeSet<>();
+ts.add(null);       // ✓ Allowed (only if first element)
+ts.add("A");        // ✗ Throws NullPointerException
+```
+
+#### 4. Performance Impact
+
+```
+HashSet:      O(1) - fastest for basic operations
+LinkedHashSet: O(1) - same speed, adds order tracking
+TreeSet:      O(log n) - slower, but maintains sort
+```
+
+#### 5. Type Safety
+
+```java
+// HashSet & LinkedHashSet: Can mix types
+Set<Object> mixed = new HashSet<>();
+mixed.add("String");
+mixed.add(123);        // ✓ Works
+
+// TreeSet: Must be homogeneous or use Comparator
+Set<Integer> nums = new TreeSet<>();
+nums.add(10);
+nums.add("String");    // ✗ ClassCastException at runtime
+```
+
+### Decision Matrix: Which Set to Use?
+
+| Requirement | Choose |
+|------------|--------|
+| **Fast, unique values, no order needed** | HashSet |
+| **Unique values, preserve insertion order** | LinkedHashSet |
+| **Unique values, must be sorted** | TreeSet |
+| **Insertion order matters for cache/history** | LinkedHashSet |
+| **Need first/last/range queries** | TreeSet |
+| **High performance critical** | HashSet |
+| **Performance less important, sorting critical** | TreeSet |
+| **Want to maintain user insertion sequence** | LinkedHashSet |
+
+### Quick Comparison Example
+
+```java
+Integer[] nums = {5, 2, 8, 2, 9, 5};
+
+Set<Integer> hash = new HashSet<>(Arrays.asList(nums));
+// Possible output: [2, 5, 8, 9] - random order
+
+Set<Integer> linked = new LinkedHashSet<>(Arrays.asList(nums));
+// Output: [5, 2, 8, 9] - insertion order
+
+Set<Integer> tree = new TreeSet<>(Arrays.asList(nums));
+// Output: [2, 5, 8, 9] - sorted order
+```
+
+### Summary Takeaways
+
+1. **HashSet** - Fastest but unordered
+2. **LinkedHashSet** - Insertion order with hash speed
+3. **TreeSet** - Sorted but slower (O(log n))
+4. **Choose based on**: Speed vs Order tradeoff
+5. **Nulls**: HashSet/LinkedHashSet allow one, TreeSet very restrictive
+6. **Types**: HashSet/LinkedHashSet flexible, TreeSet strict (unless Comparator)
+7. **Interview answer**: HashSet for speed, LinkedHashSet for insertion order, TreeSet for sorting
+8. **Real-world**: Most common is HashSet, then TreeSet for sorted needs
+9. **LinkedHashSet**: Special use case for caching/LRU implementations
+10. **Never mix requirements**: Pick one priority and use appropriate Set implementation
+
+---
+
+## Map Interface (Detailed)
+
+### Overview
+
+`Map` is a **separate interface hierarchy** from `Collection`. It is **NOT a child of Collection**.
+
+A `Map` represents a collection of **key-value pairs** where:
+- Each **key** uniquely identifies a value
+- **Duplicate keys are NOT allowed** (but duplicate values are allowed)
+- **Ordering depends on implementation** (HashMap=random, TreeMap=sorted, LinkedHashMap=insertion)
+
+### Core Concepts
+
+**Key Points:**
+- Map is for storing key-value relationships, not just values
+- Key must be unique; replacing a key's value overwrites the old value
+- Values can be duplicated across different keys
+- If same key is added again, the old value is replaced
+- Perfect for lookup scenarios where you need: ID → Value, Name → Phone, etc.
+
+### Key-Value Pair Relationship
+
+```
+Map<Integer, String> students = new HashMap<>();
+students.put(101, "Durga");      // Key=101, Value="Durga"
+students.put(102, "Ravi");       // Key=102, Value="Ravi"
+students.put(103, "Venkat");     // Key=103, Value="Venkat"
+students.put(101, "DURGA");      // Key 101 already exists → value replaced
+
+Result: {101="DURGA", 102="Ravi", 103="Venkat"}
+```
+
+### Common Map Methods
+
+| Method | Return Type | Purpose | Example |
+|--------|-------------|---------|---------|
+| `put(K key, V value)` | `V` | Adds key-value pair, returns old value if exists | `map.put(101, "Durga")` |
+| `putAll(Map m)` | `void` | Adds all key-value pairs from another map | `map.putAll(otherMap)` |
+| `get(Object key)` | `V` | Gets value associated with key | `String name = map.get(101)` |
+| `remove(Object key)` | `V` | Removes entry and returns value | `map.remove(101)` |
+| `containsKey(Object key)` | `boolean` | Checks if key exists | `map.containsKey(101)` |
+| `containsValue(Object value)` | `boolean` | Checks if value exists | `map.containsValue("Durga")` |
+| `size()` | `int` | Returns number of key-value pairs | `map.size()` |
+| `isEmpty()` | `boolean` | Checks if map is empty | `map.isEmpty()` |
+| `clear()` | `void` | Removes all key-value pairs | `map.clear()` |
+| `keySet()` | `Set<K>` | Returns all keys as a set | `Set<Integer> keys = map.keySet()` |
+| `values()` | `Collection<V>` | Returns all values as collection | `Collection<String> vals = map.values()` |
+| `entrySet()` | `Set<Map.Entry<K,V>>` | Returns all key-value pairs | `Set<Entry> entries = map.entrySet()` |
+
+### Map Hierarchy in Java
+
+```
+Map (interface)
+├── HashMap (class)
+│   └── LinkedHashMap (class)
+├── WeakHashMap (class)
+├── IdentityHashMap (class)
+├── Hashtable (class - legacy)
+│   └── Properties (class)
+└── SortedMap (interface)
+    └── TreeMap (class)
+    └── NavigableMap (interface)
+        └── TreeMap (class)
+```
+
+---
+
+## HashMap (Detailed)
+
+### Overview
+
+`HashMap` is the most commonly used `Map` implementation, introduced in **Java 1.2**.
+
+It uses a **hash table** internally to store key-value pairs with O(1) average performance.
+
+### Key Characteristics
+
+1. **Underlying Structure** - Hash Table
+2. **No Order Guarantee** - Random order (neither insertion nor sorted)
+3. **Duplicate Keys NOT Allowed** - New value replaces old
+4. **Duplicate Values Allowed** - Multiple keys can have same value
+5. **Accepts Null** - One null key and multiple null values
+6. **Not Synchronized** - Not thread-safe by default
+7. **Performance** - O(1) average for get/put/remove
+8. **Iterator** - Fails if map is modified during iteration (ConcurrentModificationException)
+
+### Constructors of HashMap
+
+```java
+HashMap<K, V> map1 = new HashMap<>();          // Default
+HashMap<K, V> map2 = new HashMap<>(int capacity);
+HashMap<K, V> map3 = new HashMap<>(int capacity, float loadFactor);
+HashMap<K, V> map4 = new HashMap<>(Map<? extends K, ? extends V> m);
+```
+
+### Comprehensive HashMap Example (All Functionality)
+
+```java
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
+
+public class HashMapComprehensiveDemo {
+    public static void main(String[] args) {
+        System.out.println("========== HASHMAP COMPREHENSIVE DEMO ==========\n");
+
+        // Step 1: Create and Add Key-Value Pairs
+        System.out.println("Step 1 - Creating HashMap and Adding Entries:");
+        HashMap<Integer, String> students = new HashMap<>();
+        
+        students.put(101, "Durga");
+        students.put(102, "Ravi");
+        students.put(103, "Venkat");
+        students.put(104, "Suresh");
+        students.put(105, null);  // null value allowed
+        
+        System.out.println("Added: 101→Durga, 102→Ravi, 103→Venkat, 104→Suresh, 105→null");
+        System.out.println("HashMap: " + students);
+        System.out.println("Note: Order is random, not insertion order\n");
+
+        // Step 2: Adding Duplicate Key (Value Replacement)
+        System.out.println("Step 2 - Adding Duplicate Key (Value Replacement):");
+        System.out.println("Before: " + students);
+        String oldValue = students.put(102, "RAVI");  // Replaces "Ravi"
+        System.out.println("Old value for key 102: " + oldValue);
+        System.out.println("After put(102, 'RAVI'): " + students);
+        System.out.println("Size: " + students.size() + " (not 6, still 5)\n");
+
+        // Step 3: Get Operations
+        System.out.println("Step 3 - Get Operations:");
+        System.out.println("get(101): " + students.get(101));           // Durga
+        System.out.println("get(105): " + students.get(105));           // null
+        System.out.println("get(999): " + students.get(999));           // null (not found)
+        System.out.println("getOrDefault(999, 'Unknown'): " + students.getOrDefault(999, "Unknown")); // Unknown
+        System.out.println();
+
+        // Step 4: Check Operations
+        System.out.println("Step 4 - Check Operations:");
+        System.out.println("containsKey(103): " + students.containsKey(103));     // true
+        System.out.println("containsKey(999): " + students.containsKey(999));     // false
+        System.out.println("containsValue('Durga'): " + students.containsValue("Durga")); // true
+        System.out.println("containsValue('Unknown'): " + students.containsValue("Unknown")); // false
+        System.out.println();
+
+        // Step 5: Remove Operations
+        System.out.println("Step 5 - Remove Operations:");
+        System.out.println("Before remove: " + students);
+        String removed = students.remove(104);
+        System.out.println("Removed key 104, value was: " + removed);
+        System.out.println("After remove(104): " + students);
+        System.out.println();
+
+        // Step 6: Iteration Methods
+        System.out.println("Step 6 - Iteration Methods:");
+        
+        // Method 1: Using entrySet (Most efficient)
+        System.out.println("a) Using entrySet():");
+        for (Entry<Integer, String> entry : students.entrySet()) {
+            System.out.println("   " + entry.getKey() + " → " + entry.getValue());
+        }
+        
+        // Method 2: Using keySet
+        System.out.print("b) Using keySet(): ");
+        for (Integer key : students.keySet()) {
+            System.out.print(key + " ");
+        }
+        System.out.println();
+        
+        // Method 3: Using values
+        System.out.print("c) Using values(): ");
+        for (String value : students.values()) {
+            System.out.print(value + " ");
+        }
+        System.out.println();
+        
+        // Method 4: Using Iterator
+        System.out.println("d) Using Iterator:");
+        Iterator<Entry<Integer, String>> it = students.entrySet().iterator();
+        while (it.hasNext()) {
+            Entry<Integer, String> entry = it.next();
+            System.out.println("   " + entry.getKey() + " → " + entry.getValue());
+        }
+        System.out.println();
+
+        // Step 7: putAll - Add from another Map
+        System.out.println("Step 7 - putAll() - Add from Another Map:");
+        HashMap<Integer, String> moreStudents = new HashMap<>();
+        moreStudents.put(201, "Prabhas");
+        moreStudents.put(202, "Nagarjuna");
+        
+        System.out.println("Original: " + students);
+        students.putAll(moreStudents);
+        System.out.println("After putAll: " + students);
+        System.out.println();
+
+        // Step 8: putIfAbsent - Add only if key doesn't exist
+        System.out.println("Step 8 - putIfAbsent():");
+        students.putIfAbsent(201, "Unknown");   // Key exists, so not added
+        students.putIfAbsent(301, "Satrajit");  // Key doesn't exist, so added
+        System.out.println("After putIfAbsent: " + students);
+        System.out.println();
+
+        // Step 9: Null Key Support
+        System.out.println("Step 9 - Null Key Support:");
+        HashMap<String, Integer> nullKeyMap = new HashMap<>();
+        nullKeyMap.put(null, 99);               // null as key (allowed, only one)
+        nullKeyMap.put("Java", 100);
+        System.out.println("Map with null key: " + nullKeyMap);
+        System.out.println("Get null key: " + nullKeyMap.get(null));
+        System.out.println();
+
+        // Step 10: Clear and isEmpty
+        System.out.println("Step 10 - Clear and isEmpty():");
+        HashMap<String, String> tempMap = new HashMap<>();
+        tempMap.put("A", "1");
+        tempMap.put("B", "2");
+        System.out.println("Before clear: " + tempMap + ", isEmpty: " + tempMap.isEmpty());
+        tempMap.clear();
+        System.out.println("After clear: " + tempMap + ", isEmpty: " + tempMap.isEmpty());
+        System.out.println();
+
+        // Step 11: Create from another Map
+        System.out.println("Step 11 - Create HashMap from another Map:");
+        HashMap<Integer, String> original = new HashMap<>();
+        original.put(1, "One");
+        original.put(2, "Two");
+        original.put(3, "Three");
+        
+        HashMap<Integer, String> copy = new HashMap<>(original);
+        System.out.println("Original: " + original);
+        System.out.println("Copy: " + copy);
+        copy.put(4, "Four");
+        System.out.println("After modifying copy: Original: " + original + ", Copy: " + copy);
+        System.out.println();
+
+        // Step 12: Duplicate Values Allowed
+        System.out.println("Step 12 - Duplicate Values (Allowed):");
+        HashMap<Integer, String> dups = new HashMap<>();
+        dups.put(1, "Same");
+        dups.put(2, "Same");
+        dups.put(3, "Same");
+        System.out.println("Multiple keys, same value: " + dups);
+        System.out.println("containsValue('Same'): " + dups.containsValue("Same")); // true
+        System.out.println();
+
+        // Step 13: Size and isEmpty
+        System.out.println("Step 13 - Size Information:");
+        System.out.println("students size: " + students.size());
+        System.out.println("students isEmpty: " + students.isEmpty());
+        System.out.println();
+
+        // Step 14: Summary Table
+        System.out.println("========== SUMMARY ==========");
+        System.out.println("✓ Key-value pair storage");
+        System.out.println("✓ Duplicate keys NOT allowed (replaces value)");
+        System.out.println("✓ Duplicate values allowed");
+        System.out.println("✓ One null key, multiple null values");
+        System.out.println("✓ Random order (no guarantees)");
+        System.out.println("✓ O(1) average performance");
+        System.out.println("✓ Not synchronized (use ConcurrentHashMap for threads)");
+        System.out.println("✓ Fail-fast iterator (ConcurrentModificationException if modified)");
+        System.out.println("✓ Most common Map implementation");
+        System.out.println("✓ Best for general-purpose key-value storage");
+    }
+}
+
+/* Output Sample:
+========== HASHMAP COMPREHENSIVE DEMO ==========
+
+Step 1 - Creating HashMap and Adding Entries:
+HashMap: {102=RAVI, 103=Venkat, 104=Suresh, 101=Durga, 105=null}
+(Note: Order is random, different on each run)
+
+Step 2 - Adding Duplicate Key (Value Replacement):
+Old value for key 102: Ravi
+Size: 5 (not 6, still 5)
+
+Step 3 - Get Operations:
+get(101): Durga
+get(105): null
+get(999): null
+
+Step 6 - Iteration Methods:
+a) Using entrySet():
+   102 → RAVI
+   103 → Venkat
+   104 → Suresh
+   101 → Durga
+   105 → null
+
+[...continues with all steps...]
+
+========== SUMMARY ==========
+✓ Key-value pair storage
+✓ Duplicate keys NOT allowed (replaces value)
+✓ Duplicate values allowed
+✓ One null key, multiple null values
+✓ Random order (no guarantees)
+✓ O(1) average performance
+✓ Not synchronized (use ConcurrentHashMap for threads)
+✓ Fail-fast iterator (ConcurrentModificationException if modified)
+✓ Most common Map implementation
+✓ Best for general-purpose key-value storage
+*/
+```
+
+---
+
+## LinkedHashMap (Detailed)
+
+### Overview
+
+`LinkedHashMap` is a child class of `HashMap`, introduced in **Java 1.4**.
+
+It combines **HashMap's performance** with **insertion order preservation** using a doubly-linked list internally.
+
+### Key Characteristics
+
+1. **Underlying Structure** - Hash Table + Doubly Linked List (Hybrid)
+2. **Insertion Order Preserved** - Iterates in the order keys were inserted
+3. **Duplicate Keys NOT Allowed** - Same as HashMap
+4. **Performance** - O(1) average (same as HashMap)
+5. **Predictable Iteration** - Always in insertion order
+6. **Access Order Variant** - Can track last access for LRU cache implementation
+7. **Null Support** - One null key, multiple null values
+
+### Constructors of LinkedHashMap
+
+```java
+LinkedHashMap<K, V> map1 = new LinkedHashMap<>();
+LinkedHashMap<K, V> map2 = new LinkedHashMap<>(int capacity);
+LinkedHashMap<K, V> map3 = new LinkedHashMap<>(int capacity, float loadFactor);
+LinkedHashMap<K, V> map4 = new LinkedHashMap<>(Map<? extends K, ? extends V> m);
+LinkedHashMap<K, V> map5 = new LinkedHashMap<>(int capacity, float loadFactor, boolean accessOrder);
+// accessOrder: true = track access order, false = track insertion order
+```
+
+### Comprehensive LinkedHashMap Example (All Functionality)
+
+```java
+import java.util.LinkedHashMap;
+import java.util.Map;
+
+public class LinkedHashMapComprehensiveDemo {
+    public static void main(String[] args) {
+        System.out.println("========== LINKEDHASHMAP COMPREHENSIVE DEMO ==========\n");
+
+        // Step 1: Insertion Order Preservation
+        System.out.println("Step 1 - Insertion Order Preservation:");
+        LinkedHashMap<Integer, String> insertion = new LinkedHashMap<>();
+        
+        insertion.put(105, "E");
+        insertion.put(102, "B");
+        insertion.put(103, "C");
+        insertion.put(104, "D");
+        insertion.put(101, "A");
+        
+        System.out.println("Insertion order: 105, 102, 103, 104, 101");
+        System.out.println("LinkedHashMap: " + insertion);
+        System.out.println("✓ Maintains insertion order (not sorted, not random)\n");
+
+        // Step 2: Comparison with HashMap
+        System.out.println("Step 2 - Comparison: HashMap vs LinkedHashMap");
+        Map<Integer, String> hashMap = new java.util.HashMap<>(insertion);
+        LinkedHashMap<Integer, String> linkedMap = new LinkedHashMap<>(insertion);
+        
+        System.out.println("HashMap (random order): " + hashMap);
+        System.out.println("LinkedHashMap (insertion order): " + linkedMap);
+        System.out.println();
+
+        // Step 3: Basic Operations (same as HashMap)
+        System.out.println("Step 3 - Basic Operations:");
+        System.out.println("get(102): " + insertion.get(102));
+        insertion.put(102, "B-Updated");
+        System.out.println("After updating 102: " + insertion);
+        System.out.println("Note: Updating doesn't change iteration order\n");
+
+        // Step 4: Adding New Entry (goes to end of order)
+        System.out.println("Step 4 - Adding New Entry:");
+        System.out.println("Before add: " + insertion);
+        insertion.put(106, "F");
+        System.out.println("After add(106, 'F'): " + insertion);
+        System.out.println("✓ New entry added to end of insertion order\n");
+
+        // Step 5: Removing Entry
+        System.out.println("Step 5 - Removing Entry:");
+        System.out.println("Before remove: " + insertion);
+        insertion.remove(103);
+        System.out.println("After remove(103): " + insertion);
+        System.out.println();
+
+        // Step 6: Re-inserting Removed Entry
+        System.out.println("Step 6 - Re-inserting Removed Entry:");
+        insertion.put(103, "C-Again");
+        System.out.println("After put(103, 'C-Again'): " + insertion);
+        System.out.println("✓ Re-inserted entry goes to end (maintains insertion order)\n");
+
+        // Step 7: Iteration Order (always insertion order)
+        System.out.println("Step 7 - Iteration (always in insertion order):");
+        System.out.print("Forward iteration: ");
+        for (Integer key : insertion.keySet()) {
+            System.out.print(key + " ");
+        }
+        System.out.println();
+        System.out.print("Values in insertion order: ");
+        for (String value : insertion.values()) {
+            System.out.print(value + " ");
+        }
+        System.out.println();
+        System.out.println();
+
+        // Step 8: Access-Order LinkedHashMap (for LRU Cache)
+        System.out.println("Step 8 - Access-Order LinkedHashMap (LRU Cache Simulation):");
+        LinkedHashMap<Integer, String> accessOrder = new LinkedHashMap<>(16, 0.75f, true) {
+            // Override removeEldestEntry for automatic LRU cache
+            protected boolean removeEldestEntry(Map.Entry eldest) {
+                return size() > 4;  // Keep only 4 recent entries
+            }
+        };
+        
+        accessOrder.put(1, "First");
+        accessOrder.put(2, "Second");
+        accessOrder.put(3, "Third");
+        accessOrder.put(4, "Fourth");
+        System.out.println("After adding 4 entries: " + accessOrder);
+        
+        accessOrder.get(1);  // Access oldest entry
+        System.out.println("After accessing 1: " + accessOrder + " (1 moved to end)");
+        
+        accessOrder.put(5, "Fifth");  // This removes least recently used
+        System.out.println("After adding 5: " + accessOrder + " (oldest removed)\n");
+
+        // Step 9: Null Key Support
+        System.out.println("Step 9 - Null Key Support:");
+        LinkedHashMap<String, Integer> nullMap = new LinkedHashMap<>();
+        nullMap.put("A", 1);
+        nullMap.put(null, 99);
+        nullMap.put("B", 2);
+        System.out.println("With null key: " + nullMap);
+        System.out.println("null key position: maintains insertion order\n");
+
+        // Step 10: Copy Constructor
+        System.out.println("Step 10 - Copy Constructor:");
+        LinkedHashMap<Integer, String> original = new LinkedHashMap<>();
+        original.put(3, "C");
+        original.put(1, "A");
+        original.put(2, "B");
+        
+        LinkedHashMap<Integer, String> copy = new LinkedHashMap<>(original);
+        System.out.println("Original: " + original);
+        System.out.println("Copy: " + copy);
+        System.out.println("✓ Copy preserves insertion order from original\n");
+
+        // Step 11: Clear and Size
+        System.out.println("Step 11 - Clear and Size:");
+        LinkedHashMap<String, String> temp = new LinkedHashMap<>();
+        temp.put("X", "1");
+        temp.put("Y", "2");
+        System.out.println("Size: " + temp.size() + ", isEmpty: " + temp.isEmpty());
+        temp.clear();
+        System.out.println("After clear, Size: " + temp.size() + ", isEmpty: " + temp.isEmpty());
+        System.out.println();
+
+        // Step 12: Summary Table
+        System.out.println("========== SUMMARY ==========");
+        System.out.println("✓ Insertion order always preserved");
+        System.out.println("✓ Child class of HashMap (same performance O(1))");
+        System.out.println("✓ Duplicate keys NOT allowed");
+        System.out.println("✓ Duplicate values allowed");
+        System.out.println("✓ One null key, multiple null values");
+        System.out.println("✓ Access-order variant for LRU cache");
+        System.out.println("✓ Predictable iteration order");
+        System.out.println("✓ Slightly more memory than HashMap (linked list pointers)");
+        System.out.println("✓ Perfect for maintaining insertion sequence");
+        System.out.println("✓ Ideal for caching, recently used items");
+    }
+}
+
+/* Output Sample:
+========== LINKEDHASHMAP COMPREHENSIVE DEMO ==========
+
+Step 1 - Insertion Order Preservation:
+LinkedHashMap: {105=E, 102=B, 103=C, 104=D, 101=A}
+
+Step 2 - Comparison: HashMap vs LinkedHashMap
+HashMap (random order): {102=B, 104=D, 105=E, 103=C, 101=A}
+LinkedHashMap (insertion order): {105=E, 102=B, 103=C, 104=D, 101=A}
+
+Step 4 - Adding New Entry:
+After add(106, 'F'): {105=E, 102=B, 103=C, 104=D, 101=A, 106=F}
+
+Step 8 - Access-Order LinkedHashMap (LRU Cache Simulation):
+After accessing 1: {2=Second, 3=Third, 4=Fourth, 1=First}
+After adding 5: {3=Third, 4=Fourth, 1=First, 5=Fifth}
+
+========== SUMMARY ==========
+✓ Insertion order always preserved
+✓ Child class of HashMap (same performance O(1))
+✓ Perfect for maintaining insertion sequence
+✓ Ideal for caching, recently used items
+*/
+```
+
+---
+
+## TreeMap (Detailed)
+
+### Overview
+
+`TreeMap` is the Map implementation of the `SortedMap` interface, introduced in **Java 1.2**.
+
+It uses a **Balanced Binary Search Tree** internally to maintain keys in sorted order.
+
+### Key Characteristics
+
+1. **Underlying Structure** - Balanced Binary Search Tree (Red-Black Tree)
+2. **Keys Always Sorted** - Based on natural order or custom comparator
+3. **Duplicate Keys NOT Allowed** - Same as all maps
+4. **Duplicate Values Allowed** - Multiple keys can have same value
+5. **Null Key NOT Allowed** - Throws NullPointerException
+6. **Null Values Allowed** - Values can be null
+7. **Performance** - O(log n) for get/put/remove (slower than HashMap)
+8. **SortedMap Methods** - firstKey(), lastKey(), headMap(), tailMap(), subMap()
+9. **Comparable Support** - Keys must be Comparable or provide Comparator
+
+### Constructors of TreeMap
+
+```java
+TreeMap<K, V> map1 = new TreeMap<>();              // Natural order
+TreeMap<K, V> map2 = new TreeMap<>(Comparator c); // Custom order
+TreeMap<K, V> map3 = new TreeMap<>(Map m);        // From map
+TreeMap<K, V> map4 = new TreeMap<>(SortedMap m);  // From SortedMap
+```
+
+### Comprehensive TreeMap Example (All Functionality)
+
+```java
+import java.util.Comparator;
+import java.util.TreeMap;
+import java.util.Map.Entry;
+
+public class TreeMapComprehensiveDemo {
+    public static void main(String[] args) {
+        System.out.println("========== TREEMAP COMPREHENSIVE DEMO ==========\n");
+
+        // Step 1: TreeMap with Natural Sorting (Integers - ascending)
+        System.out.println("Step 1 - TreeMap with Natural Sorting (Numbers):");
+        TreeMap<Integer, String> numbers = new TreeMap<>();
+        
+        numbers.put(105, "E");
+        numbers.put(102, "B");
+        numbers.put(103, "C");
+        numbers.put(104, "D");
+        numbers.put(101, "A");
+        
+        System.out.println("Added in order: 105, 102, 103, 104, 101");
+        System.out.println("TreeMap (sorted): " + numbers);
+        System.out.println("✓ Keys automatically sorted in ascending order\n");
+
+        // Step 2: TreeMap with Strings (Alphabetical sorting)
+        System.out.println("Step 2 - TreeMap with Strings (Alphabetical):");
+        TreeMap<String, Integer> employees = new TreeMap<>();
+        
+        employees.put("Venky", 150);
+        employees.put("Nag", 100);
+        employees.put("Chiru", 50);
+        employees.put("Balayya", 200);
+        
+        System.out.println("Added in order: Venky, Nag, Chiru, Balayya");
+        System.out.println("TreeMap (alphabetical): " + employees);
+        System.out.println();
+
+        // Step 3: TreeMap with Custom Comparator (Reverse order)
+        System.out.println("Step 3 - TreeMap with Custom Comparator (Descending):");
+        TreeMap<Integer, String> reverse = new TreeMap<>(Comparator.reverseOrder());
+        reverse.putAll(numbers);
+        
+        System.out.println("Default ascending: " + numbers);
+        System.out.println("Custom descending: " + reverse);
+        System.out.println();
+
+        // Step 4: SortedMap Methods - firstKey() and lastKey()
+        System.out.println("Step 4 - SortedMap Methods (firstKey/lastKey):");
+        System.out.println("firstKey(): " + numbers.firstKey());         // 101
+        System.out.println("lastKey(): " + numbers.lastKey());           // 105
+        System.out.println("firstEntry(): " + numbers.firstEntry());     // 101=A
+        System.out.println("lastEntry(): " + numbers.lastEntry());       // 105=E
+        System.out.println();
+
+        // Step 5: headMap() - Keys less than specified key
+        System.out.println("Step 5 - headMap(key) - Keys < specified:");
+        System.out.println("headMap(103): " + numbers.headMap(103));     // {101=A, 102=B}
+        System.out.println();
+
+        // Step 6: tailMap() - Keys >= specified key
+        System.out.println("Step 6 - tailMap(key) - Keys >= specified:");
+        System.out.println("tailMap(103): " + numbers.tailMap(103));     // {103=C, 104=D, 105=E}
+        System.out.println();
+
+        // Step 7: subMap() - Range of keys
+        System.out.println("Step 7 - subMap(from, to) - Range (from inclusive, to exclusive):");
+        System.out.println("subMap(102, 105): " + numbers.subMap(102, 105)); // {102=B, 103=C, 104=D}
+        System.out.println();
+
+        // Step 8: Get and Put Operations
+        System.out.println("Step 8 - Get and Put Operations (sorted order maintained):");
+        System.out.println("Before: " + numbers);
+        
+        String value = numbers.get(103);
+        System.out.println("get(103): " + value);
+        
+        numbers.put(103, "C-Updated");
+        System.out.println("After put(103, 'C-Updated'): " + numbers);
+        System.out.println("✓ Update doesn't change sorted order\n");
+
+        // Step 9: Adding New Entry (automatically placed in sorted position)
+        System.out.println("Step 9 - Adding New Entry (automatically sorted):");
+        System.out.println("Before: " + numbers);
+        numbers.put(103, "C");  // Revert
+        numbers.put(103, "C");
+        numbers.put(102, "B");
+        numbers.put(104, "E");
+        
+        TreeMap<Integer, String> sorted = new TreeMap<>();
+        sorted.put(50, "Fifty");
+        sorted.put(100, "Hundred");
+        sorted.put(10, "Ten");
+        sorted.put(75, "SeventyFive");
+        
+        System.out.println("Added: 50, 100, 10, 75");
+        System.out.println("TreeMap: " + sorted);
+        System.out.println("✓ Auto-sorted regardless of insertion order\n");
+
+        // Step 10: Remove Operation
+        System.out.println("Step 10 - Remove Operation:");
+        System.out.println("Before: " + sorted);
+        String removed = sorted.remove(100);
+        System.out.println("Removed key 100, value: " + removed);
+        System.out.println("After: " + sorted);
+        System.out.println();
+
+        // Step 11: Null Key NOT Allowed (Null Values OK)
+        System.out.println("Step 11 - Null Key vs Null Value:");
+        TreeMap<String, Integer> nullTest = new TreeMap<>();
+        nullTest.put("A", 1);
+        nullTest.put("B", null);  // ✓ Null value allowed
+        System.out.println("With null value: " + nullTest);
+        
+        try {
+            nullTest.put(null, 99);  // ✗ Null key NOT allowed
+            System.out.println("With null key: " + nullTest);
+        } catch (NullPointerException e) {
+            System.out.println("NullPointerException: Cannot use null as key in TreeMap");
+        }
+        System.out.println();
+
+        // Step 12: Iteration (always sorted order)
+        System.out.println("Step 12 - Iteration (always in sorted order):");
+        System.out.print("Keys: ");
+        for (Integer key : sorted.keySet()) {
+            System.out.print(key + " ");
+        }
+        System.out.println();
+        System.out.print("Values: ");
+        for (String val : sorted.values()) {
+            System.out.print(val + " ");
+        }
+        System.out.println();
+        System.out.print("Entries: ");
+        for (Entry<Integer, String> entry : sorted.entrySet()) {
+            System.out.print(entry.getKey() + "=" + entry.getValue() + " ");
+        }
+        System.out.println();
+        System.out.println();
+
+        // Step 13: Backed Collections (subMap changes reflect original)
+        System.out.println("Step 13 - Backed Collections (subMap view):");
+        System.out.println("Original: " + sorted);
+        
+        TreeMap<Integer, String> sub = new TreeMap<>(sorted.subMap(10, 100));
+        System.out.println("subMap(10, 100): " + sub);
+        System.out.println();
+
+        // Step 14: Comparator Method
+        System.out.println("Step 14 - Comparator Method:");
+        TreeMap<Integer, String> natural = new TreeMap<>();
+        TreeMap<Integer, String> custom = new TreeMap<>(Comparator.reverseOrder());
+        
+        System.out.println("Natural order comparator: " + natural.comparator());  // null
+        System.out.println("Custom comparator: " + custom.comparator());  // Comparator instance
+        System.out.println();
+
+        // Step 15: Size and isEmpty
+        System.out.println("Step 15 - Size and isEmpty:");
+        System.out.println("Size: " + sorted.size());
+        System.out.println("isEmpty: " + sorted.isEmpty());
+        sorted.clear();
+        System.out.println("After clear - Size: " + sorted.size() + ", isEmpty: " + sorted.isEmpty());
+        System.out.println();
+
+        // Step 16: Summary
+        System.out.println("========== SUMMARY ==========");
+        System.out.println("✓ Keys always sorted (ascending or custom)");
+        System.out.println("✓ Child of SortedMap interface");
+        System.out.println("✓ Duplicate keys NOT allowed");
+        System.out.println("✓ Duplicate values allowed");
+        System.out.println("✓ Null keys NOT allowed (NullPointerException)");
+        System.out.println("✓ Null values allowed");
+        System.out.println("✓ O(log n) performance (slower than HashMap)");
+        System.out.println("✓ SortedMap methods: firstKey(), lastKey(), headMap(), tailMap(), subMap()");
+        System.out.println("✓ Range queries efficient");
+        System.out.println("✓ Use when: Sorted keys or range operations needed");
+    }
+}
+
+/* Output Sample:
+========== TREEMAP COMPREHENSIVE DEMO ==========
+
+Step 1 - TreeMap with Natural Sorting (Numbers):
+TreeMap (sorted): {101=A, 102=B, 103=C, 104=D, 105=E}
+
+Step 2 - TreeMap with Strings (Alphabetical):
+TreeMap (alphabetical): {Balayya=200, Chiru=50, Nag=100, Venky=150}
+
+Step 3 - TreeMap with Custom Comparator (Descending):
+Default ascending: {101=A, 102=B, 103=C, 104=D, 105=E}
+Custom descending: {105=E, 104=D, 103=C, 102=B, 101=A}
+
+Step 4 - SortedMap Methods (firstKey/lastKey):
+firstKey(): 101
+lastKey(): 105
+
+[...continues with all steps...]
+
+========== SUMMARY ==========
+✓ Keys always sorted (ascending or custom)
+✓ Child of SortedMap interface
+✓ Use when: Sorted keys or range operations needed
+*/
+```
+
+---
+
+## Map Implementation Classes Comparison
+
+### Comprehensive Comparison Table
+
+| Property | HashMap | LinkedHashMap | TreeMap |
+|----------|---------|---------------|---------|
+| **Underlying Data Structure** | Hash Table | Hash Table + Linked List | Balanced Binary Search Tree |
+| **Key Order** | Random/Unordered | Insertion Order | Sorted Order |
+| **Duplicate Keys** | ✗ Not allowed | ✗ Not allowed | ✗ Not allowed |
+| **Duplicate Values** | ✓ Allowed | ✓ Allowed | ✓ Allowed |
+| **Null Key** | ✓ One null | ✓ One null | ✗ Not allowed |
+| **Null Values** | ✓ Multiple nulls | ✓ Multiple nulls | ✓ Multiple nulls |
+| **Performance (get/put/remove)** | O(1) average | O(1) average | O(log n) |
+| **Interface Implemented** | Map | Map | SortedMap, NavigableMap |
+| **Best Use Case** | Fast lookups | Insertion order needed | Sorted keys needed |
+| **Memory Overhead** | Low | Medium (linked list) | Medium (tree nodes) |
+| **Thread-Safe Variant** | ConcurrentHashMap | Collections.synchronizedMap | ConcurrentSkipListMap |
+| **Comparator Support** | N/A | N/A | ✓ Yes (required for order) |
+
+### Detailed Comparison
+
+#### 1. Key Ordering
+
+```java
+Map<Integer, String> data = {105→E, 102→B, 103→C, 104→D, 101→A};
+
+HashMap:          Random: {105=E, 102=B, 103=C, 104=D, 101=A} (varies each run)
+LinkedHashMap:    Insertion: {105=E, 102=B, 103=C, 104=D, 101=A}
+TreeMap:          Sorted: {101=A, 102=B, 103=C, 104=D, 105=E}
+```
+
+#### 2. Performance Comparison
+
+```
+Operation     | HashMap | LinkedHashMap | TreeMap
+get(key)      | O(1)    | O(1)          | O(log n)
+put(key)      | O(1)    | O(1)          | O(log n)
+remove(key)   | O(1)    | O(1)          | O(log n)
+containsKey   | O(1)    | O(1)          | O(log n)
+```
+
+#### 3. Null Handling
+
+```java
+// HashMap & LinkedHashMap
+map.put(null, value);      // ✓ Allowed (one null key)
+map.put(key, null);        // ✓ Allowed (multiple null values)
+
+// TreeMap
+map.put(null, value);      // ✗ NullPointerException
+map.put(key, null);        // ✓ Allowed (null values OK)
+```
+
+### Decision Matrix: Which Map to Use?
+
+| Requirement | Choose |
+|------------|--------|
+| **Fast, no specific order needed** | HashMap |
+| **Must preserve insertion order** | LinkedHashMap |
+| **Keys must be sorted** | TreeMap |
+| **Maximum performance critical** | HashMap |
+| **Need range queries (headMap, tailMap)** | TreeMap |
+| **LRU cache implementation** | LinkedHashMap (access-order) |
+| **Want predictable iteration** | TreeMap (sorted) or LinkedHashMap (insertion) |
+| **Key lookup performance** | HashMap |
+
+### Quick Comparison Example
+
+```java
+Map<Integer, String> data = {105→E, 102→B, 103→C, 104→D, 101→A};
+
+HashMap output:        {105=E, 102=B, 103=C, 104=D, 101=A}  // Random
+LinkedHashMap output:  {105=E, 102=B, 103=C, 104=D, 101=A}  // Insertion
+TreeMap output:        {101=A, 102=B, 103=C, 104=D, 105=E}  // Sorted
+```
+
+### Summary Takeaways
+
+1. **HashMap** - Fastest, random order
+2. **LinkedHashMap** - Insertion order with hash speed
+3. **TreeMap** - Sorted keys but slower (O(log n))
+4. **Choose based on**: Speed vs Order tradeoff
+5. **Null Keys**: HashMap/LinkedHashMap allow one, TreeMap doesn't allow any
+6. **Common Operations** - All three have same basic methods (put, get, remove)
+7. **Interview Answer** - HashMap for speed, TreeMap for sorted, LinkedHashMap for order
+8. **Performance Trade**: HashMap (fastest) > LinkedHashMap (same as HashMap) > TreeMap (slower)
+9. **Real-world Usage**: HashMap most common, then TreeMap for sorted requirements
+10. **Hybrid Approach**: Use HashMap for caching, TreeMap for sorted unique keys
+```
+
