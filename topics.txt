@@ -1,2 +1,3 @@
-1 java basics
-2 java collections framework
+1 java basics (learn from gfg)
+2 java oops (durga sir)
+3 java collections framework
