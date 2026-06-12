@@ -1983,6 +1983,7 @@ Arrays.sort(a); // [1, 2, 3]
 - Need sorted uniqueness -> `SortedSet`/`NavigableSet`
 - Need processing pipeline (FIFO/priority) -> `Queue`
 - Need key-value lookup -> `Map`
+<<<<<<< HEAD
 ---
 
 ## Collection Interface Methods and Operations
@@ -2087,10 +2088,81 @@ All these methods are fundamental to working with collections. Understanding eac
 ### Code Examples: All Collection Operations
 
 #### Example 1: Add and Contains Operations
+=======
+
+---
+
+# Starting Collection Interfaces In Detail - Part 2
+
+From now onwards, we will study each collection interface in detail with comprehensive explanations and practical examples.
+
+
+
+## 0. Collection Interface (Root) - Detailed Study
+
+### What is Collection Interface?
+
+The `Collection` interface is the **root/parent interface** of the Collection Framework (except for Map). It is the most fundamental interface that defines a contract for all collection types to follow.
+
+**Key Definition**: The Collection interface represents a group of individual objects as a single entity. It defines the core operations that ALL collections must support.
+
+### Why Collection is the Root Interface?
+
+Every collection in Java—whether it's a List, Set, or Queue—needs to support basic operations like:
+- Adding elements
+- Removing elements  
+- Searching for elements
+- Iterating through elements
+- Checking size and emptiness
+
+Rather than repeating these methods in every subinterface, Java defines them once in the Collection interface, and all other collection types inherit from it.
+
+### Key Characteristics of Collection Interface
+
+| Feature | Description |
+|---------|-------------|
+| **Root Interface** | Parent of List, Set, and Queue (not Map) |
+| **Universal Contract** | Defines methods all collections must implement |
+| **No Direct Implementation** | No concrete class directly implements Collection |
+| **Type-safe** | Supports generics for type safety |
+| **Mutable** | Most implementations allow modifications |
+
+### Collection Interface Methods (Core API)
+
+| Method | Purpose | Return Type | Example |
+|--------|---------|-------------|---------|
+| `add(E e)` | Adds an element | boolean | `collection.add("Java")` |
+| `addAll(Collection<? extends E> c)` | Adds all elements from another collection | boolean | `collection.addAll(other)` |
+| `remove(Object o)` | Removes a specific element | boolean | `collection.remove("Java")` |
+| `removeAll(Collection<?> c)` | Removes all matching elements | boolean | `collection.removeAll(other)` |
+| `retainAll(Collection<?> c)` | Keeps only matching elements | boolean | `collection.retainAll(other)` |
+| `clear()` | Removes all elements | void | `collection.clear()` |
+| `contains(Object o)` | Checks if element exists | boolean | `collection.contains("Java")` |
+| `containsAll(Collection<?> c)` | Checks if all elements exist | boolean | `collection.containsAll(other)` |
+| `size()` | Returns number of elements | int | `int count = collection.size()` |
+| `isEmpty()` | Checks if empty | boolean | `collection.isEmpty()` |
+| `iterator()` | Returns an Iterator | Iterator<E> | `Iterator it = collection.iterator()` |
+| `toArray()` | Converts to array | Object[] | `Object[] arr = collection.toArray()` |
+
+### Why No Direct Implementation?
+
+The Collection interface itself is too abstract and general. Different collection types have different semantics:
+
+- **List**: Ordered, allows duplicates, index-based access
+- **Set**: Unordered (mostly), no duplicates, no index access
+- **Queue**: FIFO or priority-based processing, designed for element processing
+
+If Collection had a concrete implementation, it would need to choose one of these behaviors, which wouldn't be appropriate for all use cases.
+
+### Brief Examples
+
+#### Example 1: Collection as a Generic Type Reference
+>>>>>>> 7cb3c0b (update)
 
 ```java
 import java.util.*;
 
+<<<<<<< HEAD
 public class CollectionAddAndContainsExample {
     public static void main(String[] args) {
         Collection<String> languages = new ArrayList<>();
@@ -2117,10 +2189,35 @@ public class CollectionAddAndContainsExample {
         
         // containsAll() - Check for all elements
         System.out.println("Contains all in moreLanguages? " + languages.containsAll(moreLanguages)); // true
+=======
+public class CollectionExample1 {
+    public static void main(String[] args) {
+        // Collection is typically referenced through its implementations
+        
+        // Using ArrayList (implements Collection via List)
+        Collection<String> languages = new ArrayList<>();
+        languages.add("Java");
+        languages.add("Python");
+        languages.add("C++");
+        
+        System.out.println("Collection: " + languages);
+        System.out.println("Size: " + languages.size());
+        System.out.println("Contains 'Java'? " + languages.contains("Java"));
+        
+        // Using HashSet (implements Collection via Set)
+        Collection<String> uniqueColors = new HashSet<>();
+        uniqueColors.add("Red");
+        uniqueColors.add("Green");
+        uniqueColors.add("Red");  // Duplicate ignored
+        
+        System.out.println("\nUnique colors: " + uniqueColors);
+        System.out.println("Size: " + uniqueColors.size());  // 2, not 3
+>>>>>>> 7cb3c0b (update)
     }
 }
 
 /* Output:
+<<<<<<< HEAD
 After adding elements: [Java, Python, JavaScript]
 Java added? true
 After addAll(): [Java, Python, JavaScript, C++, Go]
@@ -2131,10 +2228,23 @@ Contains all in moreLanguages? true
 ```
 
 #### Example 2: Remove Operations
+=======
+Collection: [Java, Python, C++]
+Size: 3
+Contains 'Java'? true
+
+Unique colors: [Red, Green]
+Size: 2
+*/
+```
+
+#### Example 2: Common Collection Operations
+>>>>>>> 7cb3c0b (update)
 
 ```java
 import java.util.*;
 
+<<<<<<< HEAD
 public class CollectionRemoveExample {
     public static void main(String[] args) {
         Collection<Integer> numbers = new ArrayList<>();
@@ -2157,10 +2267,39 @@ public class CollectionRemoveExample {
         temp.clear();
         System.out.println("After clear(): " + temp);
         System.out.println("Is empty? " + temp.isEmpty());  // true
+=======
+public class CollectionExample2 {
+    public static void main(String[] args) {
+        Collection<Integer> numbers = new ArrayList<>();
+        numbers.add(10);
+        numbers.add(20);
+        numbers.add(30);
+        numbers.add(40);
+        numbers.add(50);
+        
+        System.out.println("Original collection: " + numbers);
+        System.out.println("Size: " + numbers.size());
+        System.out.println("Is empty? " + numbers.isEmpty());
+        
+        // Remove a specific element
+        numbers.remove(30);
+        System.out.println("After removing 30: " + numbers);
+        
+        // Check if element exists
+        if (numbers.contains(20)) {
+            System.out.println("20 is present in collection");
+        }
+        
+        // Clear all elements
+        numbers.clear();
+        System.out.println("After clear(): " + numbers);
+        System.out.println("Is empty now? " + numbers.isEmpty());
+>>>>>>> 7cb3c0b (update)
     }
 }
 
 /* Output:
+<<<<<<< HEAD
 Original: [10, 20, 30, 40, 50, 60]
 After remove(30): [10, 20, 40, 50, 60]
 Was 30 removed? true
@@ -2171,10 +2310,24 @@ Is empty? true
 ```
 
 #### Example 3: Set Operations with retainAll()
+=======
+Original collection: [10, 20, 30, 40, 50]
+Size: 5
+Is empty? false
+After removing 30: [10, 20, 40, 50]
+20 is present in collection
+After clear(): []
+Is empty now? true
+*/
+```
+
+#### Example 3: Collection Bulk Operations
+>>>>>>> 7cb3c0b (update)
 
 ```java
 import java.util.*;
 
+<<<<<<< HEAD
 public class CollectionRetainAllExample {
     public static void main(String[] args) {
         Collection<Integer> set1 = new ArrayList<>(Arrays.asList(10, 20, 30, 40, 50));
@@ -2241,10 +2394,41 @@ public class CollectionSizeExample {
         fruits.clear();
         System.out.println("Size after clear: " + fruits.size());  // 0
         System.out.println("Is empty after clear? " + fruits.isEmpty());  // true
+=======
+public class CollectionExample3 {
+    public static void main(String[] args) {
+        Collection<String> fruits = new ArrayList<>();
+        fruits.add("Apple");
+        fruits.add("Banana");
+        fruits.add("Cherry");
+        
+        Collection<String> moreFruits = new ArrayList<>();
+        moreFruits.add("Date");
+        moreFruits.add("Elderberry");
+        
+        System.out.println("Original fruits: " + fruits);
+        System.out.println("More fruits: " + moreFruits);
+        
+        // addAll - adds all elements from another collection
+        fruits.addAll(moreFruits);
+        System.out.println("After addAll: " + fruits);
+        
+        // containsAll - checks if all elements from another collection are present
+        boolean hasAll = fruits.containsAll(moreFruits);
+        System.out.println("Contains all more fruits? " + hasAll);
+        
+        // removeAll - removes all matching elements
+        Collection<String> toRemove = new ArrayList<>();
+        toRemove.add("Apple");
+        toRemove.add("Banana");
+        fruits.removeAll(toRemove);
+        System.out.println("After removeAll: " + fruits);
+>>>>>>> 7cb3c0b (update)
     }
 }
 
 /* Output:
+<<<<<<< HEAD
 Is empty initially? true
 Size: 5
 Is empty now? false
@@ -2255,11 +2439,26 @@ Is empty after clear? true
 ```
 
 #### Example 5: toArray() - Conversion Operation
+=======
+Original fruits: [Apple, Banana, Cherry]
+More fruits: [Date, Elderberry]
+After addAll: [Apple, Banana, Cherry, Date, Elderberry]
+Contains all more fruits? true
+After removeAll: [Cherry, Date, Elderberry]
+*/
+```
+
+#### Example 4: Iterating Over Collection
+>>>>>>> 7cb3c0b (update)
 
 ```java
 import java.util.*;
 
+<<<<<<< HEAD
 public class CollectionToArrayExample {
+=======
+public class CollectionExample4 {
+>>>>>>> 7cb3c0b (update)
     public static void main(String[] args) {
         Collection<String> cities = new ArrayList<>();
         cities.add("New York");
@@ -2267,6 +2466,7 @@ public class CollectionToArrayExample {
         cities.add("Tokyo");
         cities.add("Paris");
         
+<<<<<<< HEAD
         System.out.println("Collection: " + cities);
         
         // Convert to Object array
@@ -2323,10 +2523,15 @@ public class CollectionIteratorExample {
         // Using iterator for traversal
         Iterator<Integer> iterator = numbers.iterator();
         System.out.println("\nTraversing with iterator:");
+=======
+        System.out.println("Method 1: Using Iterator");
+        Iterator<String> iterator = cities.iterator();
+>>>>>>> 7cb3c0b (update)
         while (iterator.hasNext()) {
             System.out.println("  - " + iterator.next());
         }
         
+<<<<<<< HEAD
         // Safe removal using iterator
         iterator = numbers.iterator();
         System.out.println("\nRemoving even numbers:");
@@ -2351,10 +2556,20 @@ public class CollectionIteratorExample {
             }
         }
         System.out.println("After safe removal: " + fruits);
+=======
+        System.out.println("\nMethod 2: Using Enhanced for loop");
+        for (String city : cities) {
+            System.out.println("  - " + city);
+        }
+        
+        System.out.println("\nMethod 3: Using forEach method");
+        cities.forEach(city -> System.out.println("  - " + city));
+>>>>>>> 7cb3c0b (update)
     }
 }
 
 /* Output:
+<<<<<<< HEAD
 Original collection: [10, 20, 30, 40, 50, 60]
 
 Traversing with iterator:
@@ -2374,10 +2589,34 @@ After safe removal: [Apple, Orange]
 ```
 
 #### Example 7: Comprehensive Example - All Operations Combined
+=======
+Method 1: Using Iterator
+  - New York
+  - London
+  - Tokyo
+  - Paris
+
+Method 2: Using Enhanced for loop
+  - New York
+  - London
+  - Tokyo
+  - Paris
+
+Method 3: Using forEach method
+  - New York
+  - London
+  - Tokyo
+  - Paris
+*/
+```
+
+#### Example 5: Working with Different Collection Types
+>>>>>>> 7cb3c0b (update)
 
 ```java
 import java.util.*;
 
+<<<<<<< HEAD
 public class CollectionComprehensiveExample {
     public static void main(String[] args) {
         System.out.println("=== COMPREHENSIVE COLLECTION OPERATIONS DEMO ===\n");
@@ -2427,10 +2666,396 @@ public class CollectionComprehensiveExample {
         System.out.println("\nStep 8 - After clear(): " + temp);
         System.out.println("Is temp empty? " + temp.isEmpty());
         System.out.println("Original colors (unchanged): " + colors);
+=======
+public class CollectionExample5 {
+    public static void main(String[] args) {
+        // All these are Collection types but with different characteristics
+        
+        // ArrayList - ordered, allows duplicates
+        Collection<Integer> list = new ArrayList<>(Arrays.asList(1, 2, 2, 3));
+        System.out.println("ArrayList (List): " + list);
+        System.out.println("  Size: " + list.size() + " (includes duplicates)");
+        
+        // HashSet - unordered, no duplicates
+        Collection<Integer> set = new HashSet<>(Arrays.asList(1, 2, 2, 3));
+        System.out.println("\nHashSet (Set): " + set);
+        System.out.println("  Size: " + set.size() + " (duplicates removed)");
+        
+        // LinkedList as Queue - FIFO processing
+        Collection<Integer> queue = new LinkedList<>(Arrays.asList(1, 2, 3));
+        System.out.println("\nLinkedList (Queue): " + queue);
+        System.out.println("  Processing order: FIFO");
+        
+        // Common operation works on all
+        System.out.println("\nCommon operation - checking size:");
+        System.out.println("  List size: " + list.size());
+        System.out.println("  Set size: " + set.size());
+        System.out.println("  Queue size: " + queue.size());
     }
 }
 
 /* Output:
+ArrayList (List): [1, 2, 2, 3]
+  Size: 4 (includes duplicates)
+
+HashSet (Set): [1, 2, 3]
+  Size: 3 (duplicates removed)
+
+LinkedList (Queue): [1, 2, 3]
+  Processing order: FIFO
+
+Common operation - checking size:
+  List size: 4
+  Set size: 3
+  Queue size: 3
+*/
+```
+
+### Key Takeaways for Collection Interface
+
+- **Collection is the root interface** - It's the parent of List, Set, and Queue (but not Map)
+- **Defines universal contract** - All collections implement these basic methods
+- **No direct instantiation** - Use concrete implementations like ArrayList, HashSet, LinkedList
+- **Type-safe with generics** - Always use `Collection<Type>` to ensure type safety
+- **Bulk operations** - addAll(), removeAll(), retainAll(), containsAll() work on all collections
+- **Multiple iteration options** - Iterator, enhanced for loop, forEach method all work
+- **Different semantics** - Child interfaces (List, Set, Queue) add their own specific behaviors
+- **Framework foundation** - Understanding Collection is key to using Java collections effectively
+
+---
+
+
+---
+
+## 1. List Interface - Detailed Study
+
+### What is List Interface?
+
+The `List` interface is a **child interface of Collection** that represents an **ordered collection of elements**. Lists allow:
+
+- **Duplicates** - The same element can appear multiple times
+- **Order** - Elements maintain the insertion order
+- **Index-based access** - You can access elements by their position (0, 1, 2, ...)
+- **Null elements** - Most list implementations allow `null` values
+
+### Key Characteristics of List
+
+| Feature | Description |
+|---------|-------------|
+| **Order** | Maintains insertion order (elements are stored in the order you add them) |
+| **Duplicates** | Allowed (same element can appear multiple times) |
+| **Index-based** | Supports positional access (get, set, remove by index) |
+| **Mutable** | Can add, remove, and modify elements after creation |
+| **Null values** | Generally allowed (except for some thread-safe implementations) |
+
+### List Interface Methods
+
+| Method | Purpose | Example |
+|--------|---------|---------|
+| `add(E e)` | Adds element at the end | `list.add("Java")` |
+| `add(int index, E e)` | Adds element at specific position | `list.add(1, "Python")` |
+| `get(int index)` | Retrieves element at index | `String s = list.get(0)` |
+| `set(int index, E e)` | Replaces element at index | `list.set(0, "C++")` |
+| `remove(int index)` | Removes element at index | `list.remove(0)` |
+| `indexOf(Object o)` | Returns index of first occurrence | `int i = list.indexOf("Java")` |
+| `lastIndexOf(Object o)` | Returns index of last occurrence | `int i = list.lastIndexOf("Java")` |
+| `subList(int from, int to)` | Returns a view of portion | `List sub = list.subList(0, 2)` |
+| `listIterator()` | Returns list iterator | `ListIterator it = list.listIterator()` |
+
+### Main Implementations of List
+
+1. **ArrayList** - Fast random access, slower insertion/deletion
+2. **LinkedList** - Slower random access, faster insertion/deletion
+3. **Vector** - Legacy, synchronized version of ArrayList
+4. **Stack** - LIFO (Last In First Out) data structure
+5. **CopyOnWriteArrayList** - Thread-safe version
+
+### Brief Examples
+
+#### Example 1: Basic List Operations with ArrayList
+
+```java
+import java.util.*;
+
+public class ListExample1 {
+    public static void main(String[] args) {
+        // Create a List
+        List<String> languages = new ArrayList<>();
+        
+        // Add elements
+        languages.add("Java");
+        languages.add("Python");
+        languages.add("C++");
+        languages.add("JavaScript");
+        
+        // Display all elements
+        System.out.println("Languages: " + languages);
+        
+        // Access element by index
+        System.out.println("First language: " + languages.get(0));
+        
+        // Get size
+        System.out.println("Total languages: " + languages.size());
+        
+        // Find index
+        System.out.println("Index of 'Python': " + languages.indexOf("Python"));
+        
+        // Remove element
+        languages.remove("C++");
+        System.out.println("After removal: " + languages);
+    }
+}
+
+/* Output:
+Languages: [Java, Python, C++, JavaScript]
+First language: Java
+Total languages: 4
+Index of 'Python': 1
+After removal: [Java, Python, JavaScript]
+*/
+```
+
+#### Example 2: List with Duplicates and Null Values
+
+```java
+import java.util.*;
+
+public class ListExample2 {
+    public static void main(String[] args) {
+        List<String> fruits = new ArrayList<>();
+        
+        // Add elements including duplicates and null
+        fruits.add("Apple");
+        fruits.add("Banana");
+        fruits.add("Apple");  // Duplicate allowed
+        fruits.add(null);     // Null allowed
+        fruits.add("Orange");
+        
+        System.out.println("Fruits list: " + fruits);
+        System.out.println("Size: " + fruits.size());
+        System.out.println("Count of 'Apple': " + Collections.frequency(fruits, "Apple"));
+        
+        // Check index of null
+        System.out.println("Index of null: " + fruits.indexOf(null));
+    }
+}
+
+/* Output:
+Fruits list: [Apple, Banana, Apple, null, Orange]
+Size: 5
+Count of 'Apple': 2
+Index of null: 3
+*/
+```
+
+#### Example 3: Positional Access and Modification
+
+```java
+import java.util.*;
+
+public class ListExample3 {
+    public static void main(String[] args) {
+        List<Integer> numbers = new ArrayList<>();
+        numbers.add(10);
+        numbers.add(20);
+        numbers.add(30);
+        numbers.add(40);
+        
+        System.out.println("Original list: " + numbers);
+        
+        // Insert element at specific index
+        numbers.add(2, 25);
+        System.out.println("After inserting 25 at index 2: " + numbers);
+        
+        // Replace element at index
+        numbers.set(1, 200);
+        System.out.println("After setting index 1 to 200: " + numbers);
+        
+        // Remove element at index
+        numbers.remove(0);
+        System.out.println("After removing index 0: " + numbers);
+        
+        // Get sublist
+        List<Integer> sublist = numbers.subList(1, 3);
+        System.out.println("Sublist from index 1 to 3: " + sublist);
+    }
+}
+
+/* Output:
+Original list: [10, 20, 30, 40]
+After inserting 25 at index 2: [10, 20, 25, 30, 40]
+After setting index 1 to 200: [10, 200, 25, 30, 40]
+After removing index 0: [200, 25, 30, 40]
+Sublist from index 1 to 3: [25, 30]
+*/
+```
+
+#### Example 4: Iteration Using ListIterator
+
+```java
+import java.util.*;
+
+public class ListExample4 {
+    public static void main(String[] args) {
+        List<String> cities = new ArrayList<>();
+        cities.add("New York");
+        cities.add("London");
+        cities.add("Tokyo");
+        cities.add("Paris");
+        
+        // Using ListIterator for bidirectional traversal
+        System.out.println("Forward traversal:");
+        ListIterator<String> iterator = cities.listIterator();
+        while (iterator.hasNext()) {
+            System.out.println("  - " + iterator.next());
+        }
+        
+        System.out.println("\nBackward traversal:");
+        while (iterator.hasPrevious()) {
+            System.out.println("  - " + iterator.previous());
+        }
+    }
+}
+
+/* Output:
+Forward traversal:
+  - New York
+  - London
+  - Tokyo
+  - Paris
+
+Backward traversal:
+  - Paris
+  - Tokyo
+  - London
+  - New York
+*/
+```
+
+#### Example 5: Common List Operations
+
+```java
+import java.util.*;
+
+public class ListExample5 {
+    public static void main(String[] args) {
+        List<Integer> list1 = new ArrayList<>(Arrays.asList(1, 2, 3, 4, 5));
+        List<Integer> list2 = new ArrayList<>(Arrays.asList(3, 4, 5, 6, 7));
+        
+        System.out.println("List1: " + list1);
+        System.out.println("List2: " + list2);
+        
+        // RetainAll - keeps only common elements
+        List<Integer> common = new ArrayList<>(list1);
+        common.retainAll(list2);
+        System.out.println("Common elements: " + common);
+        
+        // RemoveAll - removes all elements from list2 in list1
+        List<Integer> list3 = new ArrayList<>(list1);
+        list3.removeAll(list2);
+        System.out.println("List1 after removing List2 elements: " + list3);
+        
+        // AddAll - adds all elements from list2 to list1
+        List<Integer> list4 = new ArrayList<>(list1);
+        list4.addAll(list2);
+        System.out.println("List1 after adding all List2 elements: " + list4);
+    }
+}
+
+/* Output:
+List1: [1, 2, 3, 4, 5]
+List2: [3, 4, 5, 6, 7]
+Common elements: [3, 4, 5]
+List1 after removing List2 elements: [1, 2]
+List1 after adding all List2 elements: [1, 2, 3, 4, 5, 3, 4, 5, 6, 7]
+*/
+```
+
+### Key Takeaways for List Interface
+
+- **Use List when**: You need ordered collection with index-based access and duplicates are allowed
+- **Choose ArrayList** when: Fast random access is needed
+- **Choose LinkedList** when: Frequent insertions and deletions are needed
+- **Remember**: List maintains insertion order unlike Set
+- **Duplicates allowed**: Multiple same elements can coexist
+- **Index-based access** makes it efficient for position-based operations
+
+---
+
+## 2. Set Interface - Detailed Study
+
+### What is Set Interface?
+
+The `Set` interface is a **child interface of Collection** that represents a **collection of unique elements**. Sets ensure:
+
+- **No Duplicates** - Each element can appear only once
+- **No Order Guarantee** - Most sets don't guarantee any specific order (except TreeSet and LinkedHashSet)
+- **Mathematical Set Operations** - Supports union, intersection, and difference operations
+- **Null elements** - Behavior varies by implementation (TreeSet doesn't allow null, HashSet allows one null)
+
+### Key Characteristics of Set
+
+| Feature | Description |
+|---------|-------------|
+| **Uniqueness** | No duplicate elements allowed |
+| **Order** | No guaranteed order (implementation-dependent) |
+| **Index-based access** | NOT supported - cannot access by position |
+| **Mutable** | Can add and remove elements after creation |
+| **Mathematical operations** | Supports union, intersection, difference |
+
+### Set Interface Methods
+
+| Method | Purpose | Example |
+|--------|---------|---------|
+| `add(E e)` | Adds element (returns false if already exists) | `set.add("Java")` |
+| `remove(Object o)` | Removes element | `set.remove("Java")` |
+| `contains(Object o)` | Checks if element exists | `set.contains("Java")` |
+| `size()` | Returns number of unique elements | `int count = set.size()` |
+| `isEmpty()` | Checks if set is empty | `set.isEmpty()` |
+| `iterator()` | Returns iterator | `Iterator it = set.iterator()` |
+| `addAll()` | Union operation | `set1.addAll(set2)` |
+| `retainAll()` | Intersection operation | `set1.retainAll(set2)` |
+| `removeAll()` | Difference operation | `set1.removeAll(set2)` |
+
+### Main Implementations of Set
+
+1. **HashSet** - Unordered, fastest lookup, allows one null
+2. **LinkedHashSet** - Maintains insertion order
+3. **TreeSet** - Sorted order, doesn't allow null, implements NavigableSet
+4. **CopyOnWriteArraySet** - Thread-safe version
+5. **EnumSet** - For enum types only, very efficient
+
+### Brief Examples
+
+#### Example 1: Basic Set Operations with HashSet
+
+```java
+import java.util.*;
+
+public class SetExample1 {
+    public static void main(String[] args) {
+        // Create a Set
+        Set<String> colors = new HashSet<>();
+        
+        // Add elements
+        colors.add("Red");
+        colors.add("Green");
+        colors.add("Blue");
+        colors.add("Red");  // Duplicate - will not be added
+        
+        System.out.println("Colors: " + colors);
+        System.out.println("Size: " + colors.size());  // Output: 3 (not 4)
+        System.out.println("Contains 'Green'? " + colors.contains("Green"));
+        
+        // Remove element
+        colors.remove("Red");
+        System.out.println("After removing 'Red': " + colors);
+>>>>>>> 7cb3c0b (update)
+    }
+}
+
+/* Output:
+<<<<<<< HEAD
 === COMPREHENSIVE COLLECTION OPERATIONS DEMO ===
 
 Step 1 - Initial colors: [Red, Green, Blue]
@@ -2489,10 +3114,21 @@ The `List` interface extends `Collection` and adds index-based operations. These
 | `listIterator(int index)` | ListIterator | Returns iterator starting at specific index | `ListIterator it = list.listIterator(2)` |
 
 ### Comprehensive Example: All List Operations in One Demo
+=======
+Colors: [Green, Blue, Red]  // Order may vary
+Size: 3
+Contains 'Green'? true
+After removing 'Red': [Green, Blue]
+*/
+```
+
+#### Example 2: HashSet vs LinkedHashSet (Order Difference)
+>>>>>>> 7cb3c0b (update)
 
 ```java
 import java.util.*;
 
+<<<<<<< HEAD
 public class ListInterfaceComprehensiveExample {
     public static void main(String[] args) {
         System.out.println("========== LIST INTERFACE OPERATIONS DEMO ==========\n");
@@ -2660,10 +3296,38 @@ public class ListInterfaceComprehensiveExample {
         System.out.println("✓ listIterator(index) - Bidirectional from index");
         System.out.println("✓ Duplicates allowed - Same element at different indices");
         System.out.println("✓ Order preserved - Insertion order maintained");
+=======
+public class SetExample2 {
+    public static void main(String[] args) {
+        System.out.println("=== HashSet (No Order Guarantee) ===");
+        Set<Integer> hashSet = new HashSet<>();
+        hashSet.add(30);
+        hashSet.add(10);
+        hashSet.add(20);
+        hashSet.add(40);
+        System.out.println("HashSet: " + hashSet);  // Random order
+        
+        System.out.println("\n=== LinkedHashSet (Insertion Order) ===");
+        Set<Integer> linkedSet = new LinkedHashSet<>();
+        linkedSet.add(30);
+        linkedSet.add(10);
+        linkedSet.add(20);
+        linkedSet.add(40);
+        System.out.println("LinkedHashSet: " + linkedSet);  // [30, 10, 20, 40]
+        
+        System.out.println("\n=== TreeSet (Sorted Order) ===");
+        Set<Integer> treeSet = new TreeSet<>();
+        treeSet.add(30);
+        treeSet.add(10);
+        treeSet.add(20);
+        treeSet.add(40);
+        System.out.println("TreeSet: " + treeSet);  // [10, 20, 30, 40]
+>>>>>>> 7cb3c0b (update)
     }
 }
 
 /* Output:
+<<<<<<< HEAD
 ========== LIST INTERFACE OPERATIONS DEMO ==========
 
 Step 1 - Initial List: [Java, Python, JavaScript, C++, Go]
@@ -2874,10 +3538,25 @@ ArrayList<E> list3 = new ArrayList<>(Collection<? extends E> c);
 ---
 
 ### One Comprehensive Example (Important ArrayList + List methods together)
+=======
+=== HashSet (No Order Guarantee) ===
+HashSet: [20, 30, 40, 10]
+
+=== LinkedHashSet (Insertion Order) ===
+LinkedHashSet: [30, 10, 20, 40]
+
+=== TreeSet (Sorted Order) ===
+TreeSet: [10, 20, 30, 40]
+*/
+```
+
+#### Example 3: Set Mathematical Operations
+>>>>>>> 7cb3c0b (update)
 
 ```java
 import java.util.*;
 
+<<<<<<< HEAD
 public class ArrayListAllMethodsOneExample {
     public static void main(String[] args) {
         // 1) Constructors
@@ -4655,10 +5334,35 @@ public class LinkedHashSetComprehensiveDemo {
         System.out.println("✓ Iterator safe - Can remove during iteration");
         System.out.println("✓ Set operations - Union, intersection, difference");
         System.out.println("✓ Real-world use - Caching, recent items, ordered unique data");
+=======
+public class SetExample3 {
+    public static void main(String[] args) {
+        Set<Integer> set1 = new HashSet<>(Arrays.asList(1, 2, 3, 4, 5));
+        Set<Integer> set2 = new HashSet<>(Arrays.asList(3, 4, 5, 6, 7));
+        
+        System.out.println("Set1: " + set1);
+        System.out.println("Set2: " + set2);
+        
+        // Union operation (addAll)
+        Set<Integer> union = new HashSet<>(set1);
+        union.addAll(set2);
+        System.out.println("Union (Set1 ∪ Set2): " + union);
+        
+        // Intersection operation (retainAll)
+        Set<Integer> intersection = new HashSet<>(set1);
+        intersection.retainAll(set2);
+        System.out.println("Intersection (Set1 ∩ Set2): " + intersection);
+        
+        // Difference operation (removeAll)
+        Set<Integer> difference = new HashSet<>(set1);
+        difference.removeAll(set2);
+        System.out.println("Difference (Set1 - Set2): " + difference);
+>>>>>>> 7cb3c0b (update)
     }
 }
 
 /* Output:
+<<<<<<< HEAD
 ========== LINKEDHASHSET COMPREHENSIVE DEMO ==========
 
 Step 1 - Constructors:
@@ -5795,10 +6499,38 @@ class Employee implements Comparable<Employee> {
         if (this.eid < other.eid) return -1;
         else if (this.eid > other.eid) return +1;
         else return 0;
+=======
+Set1: [1, 2, 3, 4, 5]
+Set2: [3, 4, 5, 6, 7]
+Union (Set1 ∪ Set2): [1, 2, 3, 4, 5, 6, 7]
+Intersection (Set1 ∩ Set2): [3, 4, 5]
+Difference (Set1 - Set2): [1, 2]
+*/
+```
+
+#### Example 4: TreeSet with Custom Objects
+
+```java
+import java.util.*;
+
+class Student implements Comparable<Student> {
+    int id;
+    String name;
+    
+    Student(int id, String name) {
+        this.id = id;
+        this.name = name;
+    }
+    
+    @Override
+    public int compareTo(Student other) {
+        return Integer.compare(this.id, other.id);
+>>>>>>> 7cb3c0b (update)
     }
     
     @Override
     public String toString() {
+<<<<<<< HEAD
         return name + "-" + eid;
     }
 }
@@ -5956,10 +6688,25 @@ public class EmployeeComparableComparatorDemo {
         System.out.println("✓ TreeSet uses compareTo() by default, compare() if Comparator provided");
         System.out.println("✓ Duplicates determined by compareTo()/compare() result (0 = duplicate)");
         System.out.println("✓ Interviews: Comparable = writer's choice, Comparator = user's choice");
+=======
+        return "(" + id + ", " + name + ")";
+    }
+}
+
+public class SetExample4 {
+    public static void main(String[] args) {
+        Set<Student> students = new TreeSet<>();
+        students.add(new Student(3, "Charlie"));
+        students.add(new Student(1, "Alice"));
+        students.add(new Student(2, "Bob"));
+        
+        System.out.println("Students (sorted by ID): " + students);
+>>>>>>> 7cb3c0b (update)
     }
 }
 
 /* Output:
+<<<<<<< HEAD
 ========== EMPLOYEE COMPARABLE & COMPARATOR DEMO ==========
 
 Step 1 - Default Natural Sorting (Comparable - by ID ascending):
@@ -6956,4 +7703,496 @@ TreeMap output:        {101=A, 102=B, 103=C, 104=D, 105=E}  // Sorted
 9. **Real-world Usage**: HashMap most common, then TreeMap for sorted requirements
 10. **Hybrid Approach**: Use HashMap for caching, TreeMap for sorted unique keys
 ```
+=======
+Students (sorted by ID): [(1, Alice), (2, Bob), (3, Charlie)]
+*/
+```
+
+#### Example 5: Removing Duplicates from a List using Set
+
+```java
+import java.util.*;
+
+public class SetExample5 {
+    public static void main(String[] args) {
+        List<String> listWithDuplicates = Arrays.asList(
+            "Apple", "Banana", "Apple", "Orange", "Banana", "Grape"
+        );
+        
+        System.out.println("Original list: " + listWithDuplicates);
+        System.out.println("Size: " + listWithDuplicates.size());
+        
+        // Convert to Set to remove duplicates
+        Set<String> uniqueElements = new HashSet<>(listWithDuplicates);
+        System.out.println("After converting to Set: " + uniqueElements);
+        System.out.println("Unique count: " + uniqueElements.size());
+        
+        // Convert back to List if needed
+        List<String> uniqueList = new ArrayList<>(uniqueElements);
+        System.out.println("Back to List: " + uniqueList);
+    }
+}
+
+/* Output:
+Original list: [Apple, Banana, Apple, Orange, Banana, Grape]
+Size: 6
+After converting to Set: [Apple, Orange, Banana, Grape]
+Unique count: 4
+Back to List: [Orange, Apple, Banana, Grape]
+*/
+```
+
+### Key Takeaways for Set Interface
+
+- **Use Set when**: You need unique elements and duplicates should be prevented
+- **Choose HashSet** when: Performance is critical and order doesn't matter
+- **Choose LinkedHashSet** when: You need insertion order maintenance
+- **Choose TreeSet** when: You need sorted elements
+- **No index access**: Unlike List, you cannot access elements by position
+- **Mathematical operations**: Sets naturally support union, intersection, and difference
+- **Removing duplicates**: Convert List to Set and back to List if needed
+
+---
+
+## 3. Queue Interface - Detailed Study
+
+### What is Queue Interface?
+
+The `Queue` interface is a **child interface of Collection** that represents a **collection designed for holding elements prior to processing**. Queues typically follow the **FIFO (First In First Out)** principle, though some priority-based queues are available.
+
+### Key Characteristics of Queue
+
+| Feature | Description |
+|---------|-------------|
+| **Processing Order** | Usually FIFO (First In First Out), but can be priority-based |
+| **Head and Tail** | Tracks the front (head) and back (tail) of the queue |
+| **Duplicates** | Generally allowed |
+| **Order** | Maintains insertion order (in FIFO queues) |
+| **Null values** | Behavior varies by implementation |
+
+### Queue Interface Methods
+
+| Method | Purpose | Return Type | Throws Exception |
+|--------|---------|-------------|------------------|
+| `add(E e)` | Adds element to tail | boolean | Yes (if full) |
+| `offer(E e)` | Adds element to tail | boolean | No (returns false if full) |
+| `remove()` | Removes and returns head | E | Yes (if empty) |
+| `poll()` | Removes and returns head | E | No (returns null if empty) |
+| `element()` | Returns head without removing | E | Yes (if empty) |
+| `peek()` | Returns head without removing | E | No (returns null if empty) |
+| `size()` | Returns number of elements | int | - |
+| `isEmpty()` | Checks if queue is empty | boolean | - |
+
+### Main Implementations of Queue
+
+1. **LinkedList** - Implements Queue with LinkedList structure
+2. **PriorityQueue** - Elements ordered by priority, not insertion order
+3. **Deque implementations** - Allow insertion/removal at both ends
+4. **BlockingQueue** - Thread-safe queue for concurrent operations
+5. **CircularQueue** - Fixed-size circular buffer
+
+### Brief Examples
+
+#### Example 1: Basic Queue Operations with LinkedList
+
+```java
+import java.util.*;
+
+public class QueueExample1 {
+    public static void main(String[] args) {
+        // Create a Queue using LinkedList
+        Queue<String> queue = new LinkedList<>();
+        
+        // Add elements to the queue
+        queue.add("First");
+        queue.add("Second");
+        queue.add("Third");
+        queue.add("Fourth");
+        
+        System.out.println("Queue: " + queue);
+        System.out.println("Size: " + queue.size());
+        
+        // Peek at the head element without removing
+        System.out.println("Head (peek): " + queue.peek());
+        
+        // Remove and process elements
+        System.out.println("\nProcessing queue (FIFO):");
+        while (!queue.isEmpty()) {
+            System.out.println("  Removed: " + queue.poll());
+        }
+        
+        System.out.println("Queue is now empty: " + queue.isEmpty());
+    }
+}
+
+/* Output:
+Queue: [First, Second, Third, Fourth]
+Size: 4
+Head (peek): First
+
+Processing queue (FIFO):
+  Removed: First
+  Removed: Second
+  Removed: Third
+  Removed: Fourth
+Queue is now empty: true
+*/
+```
+
+#### Example 2: PriorityQueue - Elements by Priority
+
+```java
+import java.util.*;
+
+public class QueueExample2 {
+    public static void main(String[] args) {
+        // PriorityQueue orders elements by priority (min-heap by default)
+        Queue<Integer> pq = new PriorityQueue<>();
+        
+        pq.add(30);
+        pq.add(10);
+        pq.add(20);
+        pq.add(5);
+        pq.add(40);
+        
+        System.out.println("PriorityQueue (smallest element has highest priority):");
+        while (!pq.isEmpty()) {
+            System.out.println("  Removed: " + pq.poll());
+        }
+    }
+}
+
+/* Output:
+PriorityQueue (smallest element has highest priority):
+  Removed: 5
+  Removed: 10
+  Removed: 20
+  Removed: 30
+  Removed: 40
+*/
+```
+
+#### Example 3: Queue Methods - Comparison
+
+```java
+import java.util.*;
+
+public class QueueExample3 {
+    public static void main(String[] args) {
+        Queue<String> queue = new LinkedList<>();
+        queue.add("Task1");
+        queue.add("Task2");
+        queue.add("Task3");
+        
+        // Different methods to inspect and remove
+        System.out.println("Queue: " + queue);
+        
+        // peek() vs element() - both return head without removing
+        System.out.println("peek(): " + queue.peek());     // Returns null if empty
+        System.out.println("element(): " + queue.element()); // Throws exception if empty
+        System.out.println("Queue after peek/element: " + queue);
+        
+        // poll() vs remove() - both remove head
+        System.out.println("\npoll(): " + queue.poll());    // Returns null if empty
+        System.out.println("Queue after poll: " + queue);
+        
+        System.out.println("remove(): " + queue.remove());  // Throws exception if empty
+        System.out.println("Queue after remove: " + queue);
+    }
+}
+
+/* Output:
+Queue: [Task1, Task2, Task3]
+peek(): Task1
+element(): Task1
+Queue after peek/element: [Task1, Task2, Task3]
+
+poll(): Task1
+Queue after poll: [Task2, Task3]
+remove(): Task2
+Queue after remove: [Task3]
+*/
+```
+
+#### Example 4: Deque (Double-Ended Queue)
+
+```java
+import java.util.*;
+
+public class QueueExample4 {
+    public static void main(String[] args) {
+        // Deque allows insertion and removal at both ends
+        Deque<Integer> deque = new LinkedList<>();
+        
+        // Add elements at both ends
+        deque.addFirst(10);
+        deque.addLast(30);
+        deque.addFirst(5);
+        deque.addLast(40);
+        
+        System.out.println("Deque: " + deque);
+        
+        // Remove from both ends
+        System.out.println("removeFirst: " + deque.removeFirst());
+        System.out.println("removeLast: " + deque.removeLast());
+        
+        System.out.println("Deque after removals: " + deque);
+        
+        // Stack-like operations
+        System.out.println("\nUsing Deque as Stack:");
+        Deque<String> stack = new LinkedList<>();
+        stack.push("A");
+        stack.push("B");
+        stack.push("C");
+        
+        while (!stack.isEmpty()) {
+            System.out.println("  Popped: " + stack.pop());
+        }
+    }
+}
+
+/* Output:
+Deque: [5, 10, 30, 40]
+removeFirst: 5
+removeLast: 40
+Deque after removals: [10, 30]
+
+Using Deque as Stack:
+  Popped: C
+  Popped: B
+  Popped: A
+*/
+```
+
+#### Example 5: Practical Queue Usage - Task Processing
+
+```java
+import java.util.*;
+
+class Task {
+    String name;
+    int priority;
+    
+    Task(String name, int priority) {
+        this.name = name;
+        this.priority = priority;
+    }
+    
+    @Override
+    public String toString() {
+        return name + "(P:" + priority + ")";
+    }
+}
+
+public class QueueExample5 {
+    public static void main(String[] args) {
+        // PriorityQueue with custom comparator (higher priority first)
+        Queue<Task> taskQueue = new PriorityQueue<>(
+            (t1, t2) -> Integer.compare(t2.priority, t1.priority)
+        );
+        
+        taskQueue.add(new Task("Debug", 1));
+        taskQueue.add(new Task("Deploy", 5));
+        taskQueue.add(new Task("Test", 3));
+        taskQueue.add(new Task("Review", 4));
+        
+        System.out.println("Processing tasks by priority:");
+        while (!taskQueue.isEmpty()) {
+            System.out.println("  Processing: " + taskQueue.poll());
+        }
+    }
+}
+
+/* Output:
+Processing tasks by priority:
+  Processing: Deploy(P:5)
+  Processing: Review(P:4)
+  Processing: Test(P:3)
+  Processing: Debug(P:1)
+*/
+```
+
+### Key Takeaways for Queue Interface
+
+- **Use Queue when**: You need FIFO processing or priority-based element handling
+- **Choose LinkedList** when: You need a simple FIFO queue
+- **Choose PriorityQueue** when: Elements should be processed by priority
+- **Choose Deque** when: You need double-ended queue operations
+- **Method pairs**: `add()`/`offer()`, `remove()`/`poll()`, `element()`/`peek()` differ in exception handling
+- **Thread-safety**: Use BlockingQueue for concurrent multi-threaded scenarios
+- **FIFO principle**: First element added is the first one to be removed
+
+---
+
+## Collection Interface: Complete Overview
+
+The **Collection** interface is the foundation of the Java Collection Framework. It serves as the root interface for all collection types (except Map).
+
+### Why Collection Interface?
+
+* If we want to represent a group of individual objects as a single entity, we should use **Collection**.
+* In general, the **Collection interface is considered the root interface** of the Collection Framework.
+* The **Collection interface defines the most common methods** which are applicable for any collection object.
+* **Important Note**: There is **no concrete class** that directly implements the Collection interface. All concrete implementations (ArrayList, HashSet, LinkedList, etc.) implement specific sub-interfaces like List, Set, or Queue.
+
+### Why No Direct Implementation?
+
+Collection is too abstract because different collection types have different behaviors:
+- **List**: Allows duplicates and maintains insertion order
+- **Set**: Does not allow duplicates
+- **Queue**: Follows FIFO or priority-based ordering
+
+It would be semantically incorrect to have a single implementation for all these different behaviors.
+
+### Common Methods of Collection Interface
+
+| Method | Purpose | Example |
+|--------|---------|---------|
+| `boolean add(E e)` | Adds an element to the collection | `list.add("Java")` |
+| `boolean addAll(Collection<? extends E> c)` | Adds all elements from another collection | `list.addAll(anotherList)` |
+| `boolean remove(Object o)` | Removes a specific element | `list.remove("Java")` |
+| `boolean removeAll(Collection<?> c)` | Removes all matching elements | `list.removeAll(anotherList)` |
+| `boolean retainAll(Collection<?> c)` | Keeps only elements present in another collection | `list.retainAll(anotherList)` |
+| `boolean contains(Object o)` | Checks if element exists | `list.contains("Java")` |
+| `boolean containsAll(Collection<?> c)` | Checks if all elements exist | `list.containsAll(anotherList)` |
+| `boolean isEmpty()` | Checks if collection is empty | `if (list.isEmpty())` |
+| `int size()` | Returns number of elements | `int count = list.size()` |
+| `void clear()` | Removes all elements | `list.clear()` |
+| `Iterator<E> iterator()` | Returns an iterator for traversal | `Iterator it = list.iterator()` |
+| `Object[] toArray()` | Converts collection to array | `Object[] arr = list.toArray()` |
+
+### Brief Examples
+
+#### Example 1: Basic Collection Operations with ArrayList
+
+```java
+import java.util.*;
+
+public class CollectionExample {
+    public static void main(String[] args) {
+        Collection<String> fruits = new ArrayList<>();
+        
+        // Adding elements
+        fruits.add("Apple");
+        fruits.add("Banana");
+        fruits.add("Orange");
+        
+        // Size and contains
+        System.out.println("Total: " + fruits.size()); // 3
+        System.out.println("Has Apple? " + fruits.contains("Apple")); // true
+        
+        // Remove and iterate
+        fruits.remove("Banana");
+        for (String fruit : fruits) {
+            System.out.println("- " + fruit);
+        }
+    }
+}
+```
+
+#### Example 2: Collection Operations with Multiple Collections
+
+```java
+import java.util.*;
+
+public class CollectionOperations {
+    public static void main(String[] args) {
+        Collection<Integer> nums1 = new ArrayList<>(Arrays.asList(1, 2, 3));
+        Collection<Integer> nums2 = new ArrayList<>(Arrays.asList(2, 3, 4));
+        
+        // addAll - adds all elements from nums2 to nums1
+        nums1.addAll(nums2);
+        System.out.println("After addAll: " + nums1); // [1, 2, 3, 2, 3, 4]
+        
+        // retainAll - keeps only common elements
+        Collection<Integer> common = new ArrayList<>(nums1);
+        common.retainAll(nums2);
+        System.out.println("Common: " + common); // [2, 3, 2, 3]
+        
+        // containsAll - checks if all elements exist
+        System.out.println("Contains all? " + nums1.containsAll(nums2)); // true
+    }
+}
+```
+
+---
+
+## 10 Important Methods of Collection Interface
+
+The Collection interface provides essential methods that work across all collection types. Mastering these methods is fundamental to Java collections programming.
+
+### The 10 Most Important Methods
+
+| # | Method | Purpose |
+|---|--------|---------|
+| 1 | `add(E e)` | Adds single element |
+| 2 | `addAll(Collection<? extends E> c)` | Adds all elements from another collection |
+| 3 | `remove(Object o)` | Removes a specific element |
+| 4 | `removeAll(Collection<?> c)` | Removes all matching elements |
+| 5 | `retainAll(Collection<?> c)` | Keeps only common elements |
+| 6 | `contains(Object o)` | Checks if element exists |
+| 7 | `containsAll(Collection<?> c)` | Checks if all elements exist |
+| 8 | `size()` | Returns number of elements |
+| 9 | `isEmpty()` | Checks if empty |
+| 10 | `iterator()` | Returns Iterator for traversal |
+
+### Brief Code Examples for Each Method
+
+```java
+import java.util.*;
+
+public class TenImportantMethods {
+    public static void main(String[] args) {
+        Collection<String> col = new ArrayList<>();
+        
+        // 1. add() - Add single element
+        col.add("Java");
+        col.add("Python");
+        
+        // 2. addAll() - Add multiple elements
+        col.addAll(Arrays.asList("C++", "Go"));
+        System.out.println("After addAll: " + col); // [Java, Python, C++, Go]
+        
+        // 8. size() - Get size
+        System.out.println("Size: " + col.size()); // 4
+        
+        // 6. contains() - Search single element
+        System.out.println("Has Java? " + col.contains("Java")); // true
+        
+        // 7. containsAll() - Search multiple elements
+        System.out.println("Has all? " + col.containsAll(Arrays.asList("Java", "Python"))); // true
+        
+        // 3. remove() - Remove single element
+        col.remove("Python");
+        System.out.println("After remove: " + col); // [Java, C++, Go]
+        
+        // 4. removeAll() - Remove matching elements
+        col.removeAll(Arrays.asList("C++", "Go"));
+        System.out.println("After removeAll: " + col); // [Java]
+        
+        // 9. isEmpty() - Check if empty
+        System.out.println("Is empty? " + col.isEmpty()); // false
+        
+        // 10. iterator() - Traverse collection
+        Iterator<String> it = col.iterator();
+        while (it.hasNext()) {
+            System.out.println("Element: " + it.next());
+        }
+    }
+}
+```
+
+### Grouped by Purpose
+
+**Modification Methods:**
+- `add()`, `addAll()`, `remove()`, `removeAll()`, `retainAll()`, `clear()`
+
+**Query/Search Methods:**
+- `contains()`, `containsAll()`, `isEmpty()`, `size()`
+
+**Iteration Methods:**
+- `iterator()`, `toArray()`
+
+These methods form the backbone of working with collections in Java and are available across all collection implementations.
+>>>>>>> 7cb3c0b (update)
 
