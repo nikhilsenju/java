@@ -1,3 +1,4 @@
 1 java basics (learn from gfg)
-2 java oops (durga sir)
-3 java collections framework
+2 how java works
+3 java oops (durga sir)
+4 java collections framework
