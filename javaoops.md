@@ -2116,3 +2116,1140 @@ class B {
 ---
 
 Summary: Cyclic Inheritance is logically impossible and redundant. Java's compiler detects and blocks all forms (direct self-inheritance and indirect circular chains) at compile-time. When you encounter a cycle in design, merge the classes or redesign using composition.
+
+---
+
+## 21 Method Signature
+
+A Method Signature is the exact structural identifier that the Java compiler uses to recognize, track, and differentiate a method from other methods inside a class. Method signatures form the foundation for understanding Method Overloading and Method Overriding—the two primary mechanisms of Polymorphism in Java.
+
+### 21.1 Core definition and composition
+
+- **Definition**: A method signature is the unique structural fingerprint of a method consisting of exactly two components: the method name and the parameter list (argument types in order).
+
+In Java, a method signature is formally defined as:
+
+$$\text{Method Signature} = \text{Method Name} + \text{Parameter List (by type and order)}$$
+
+- **Example**: For the method declaration:
+
+```java
+public int calculate(int total, float discount) { ... }
+```
+
+The method signature extracted by the compiler is:
+
+$$\text{calculate(int, float)}$$
+
+The signature is **not** the entire method declaration—it's only these two structural components.
+
+### 21.2 Components of a method signature (detailed breakdown)
+
+#### 21.2.1 Method Name
+
+- The method name is part of the signature.
+- Example: `calculate`, `m1`, `doWork`, etc.
+- Methods with different names have different signatures even if their parameters are identical.
+
+#### 21.2.2 Parameter List (Argument Types and Order)
+
+- The parameter list consists of the data types of the parameters in the exact order they are declared.
+- Only the types matter—not the variable names.
+- The order is critical and affects the signature.
+
+**Example comparing parameter lists**:
+
+```java
+// ✅ Different signatures (different order)
+void m1(int i, String s) { }      // Signature: m1(int, String)
+void m1(String s, int i) { }      // Signature: m1(String, int)
+
+// ✅ Different signatures (different types)
+void m1(int i) { }                // Signature: m1(int)
+void m1(float f) { }              // Signature: m1(float)
+
+// ❌ SAME signature (parameter names don't matter)
+void m1(int total) { }            // Signature: m1(int)
+void m1(int amount) { }           // Signature: m1(int) — DUPLICATE!
+```
+
+### 21.3 What is NOT part of a method signature (critical exam topics)
+
+#### 21.3.1 Parameter variable names
+
+- The variable labels (for example `total`, `discount`, `amount`) do not matter to the compiler.
+- Only the underlying data types matter.
+- Swapping parameter names does not change the signature.
+
+**Example**:
+
+```java
+// ✅ SAME signature (names differ, but types are identical)
+void m1(int total, float discount) { }    // Signature: m1(int, float)
+void m1(int amount, float rate) { }       // Signature: m1(int, float) — DUPLICATE!
+```
+
+Why the compiler ignores names: Parameter names are purely for documentation and local variable access within the method body. The compiler's method lookup table uses only type information, not names.
+
+#### 21.3.2 Return type
+
+- **Critical point**: In Java, the return type is completely excluded from the method signature.
+- This is a very common certification exam trap and a source of confusion because other languages (like C++) include the return type in their signatures.
+
+**Example (Java)**:
+
+```java
+// ❌ COMPILE-TIME ERROR!
+class Test {
+    public void m1(int i) { }       // Signature: m1(int)
+    public int m1(int j) { return 10; }  // Signature: m1(int) — DUPLICATE!
+}
+```
+
+**Compiler error**:
+
+```
+error: method m1(int) is already defined in class Test
+```
+
+Why the return type doesn't matter: The compiler distinguishes methods purely by signature. If it allowed two methods with the same name and parameter types but different return types, ambiguity would arise. Consider a call like:
+
+```java
+int x = t.m1(50);  // Which m1(int) should respond?
+```
+
+The compiler cannot decide based on return type alone.
+
+**Example (C++ contrast—for context)**:
+
+In C++, return type is part of the signature, so this is legal:
+
+```cpp
+// ✅ Legal in C++, illegal in Java
+void m1(int i) { }
+int m1(int i) { return 10; }  // Different return type makes them distinct
+```
+
+This is NOT legal in Java.
+
+#### 21.3.3 Access modifiers
+
+- Access modifiers (`public`, `private`, `protected`, `static`, `final`, `synchronized`, etc.) are completely excluded from the method signature.
+- They do not affect method identity or lookup.
+
+**Example**:
+
+```java
+// ✅ SAME signature (access modifiers differ, but name and params are identical)
+public void m1(int i) { }       // Signature: m1(int)
+private void m1(int i) { }      // Signature: m1(int) — DUPLICATE!
+```
+
+Why: Access modifiers control visibility and behavior semantics, not method identity. The compiler stores methods in its lookup table by signature string alone, independent of visibility rules.
+
+### 21.4 The compiler's method table (internal mechanism)
+
+When you compile a Java file, the compiler builds an internal lookup ledger for each class called a **Method Table**. This table stores every method mapped exclusively by its signature string.
+
+**Example**:
+
+```java
+class Test {
+    public void m1(int i) { System.out.println("m1 with int"); }
+    public void m2(String s) { System.out.println("m2 with String"); }
+    public double calculate(int x, float y) { return x + y; }
+}
+```
+
+The compiler's internal Method Table for class `Test` looks like:
+
+```
+Method Table for class Test
+├─ m1(int)
+├─ m2(String)
+└─ calculate(int, float)
+```
+
+**Lookup process during compilation**:
+
+1. When you write `t.m1(10)` in code, the compiler:
+   - Extracts the reference type: `Test` (from variable `t`)
+   - Analyzes the argument: `10` is of type `int`
+   - Constructs the lookup key: `m1(int)`
+   - Searches the Method Table of class `Test` for entry `m1(int)`
+   - If found ✅, compilation proceeds
+   - If not found ❌, compilation fails with error: `cannot find symbol - method m1(int)`
+
+2. When you write `t.m3(10.5)`, the compiler:
+   - Constructs lookup key: `m3(double)`
+   - Searches Method Table for `m3(double)`
+   - Fails to find it
+   - Reports error: `error: cannot find symbol - method m3(double)`
+
+### 21.5 The duplicate signature rule (the core constraint)
+
+**Rule**: Within the exact same class, no two methods are allowed to possess the identical method signature.
+
+This rule is fundamental and non-negotiable. If you violate it, the compiler immediately rejects the class definition.
+
+**Rationale**: If two methods had the same signature, the Method Table lookup would be ambiguous. When a method call is made, the compiler wouldn't know which method to invoke.
+
+**Examples of violations**:
+
+#### Violation 1: Same name, same parameter types (different names)
+
+```java
+// ❌ COMPILE-TIME ERROR!
+class Test {
+    void m1(int i) { }           // Signature: m1(int)
+    void m1(int j) { }           // Signature: m1(int) — DUPLICATE!
+}
+```
+
+**Compiler error**:
+
+```
+error: method m1(int) is already defined in class Test
+```
+
+#### Violation 2: Same name, same parameter types (different return types)
+
+```java
+// ❌ COMPILE-TIME ERROR!
+class Test {
+    public void m1(int i) { }       // Signature: m1(int)
+    public int m1(int i) { return 10; }  // Signature: m1(int) — DUPLICATE!
+}
+```
+
+**Compiler error**:
+
+```
+error: method m1(int) is already defined in class Test
+```
+
+#### Violation 3: Same name, same parameter types (different access modifiers)
+
+```java
+// ❌ COMPILE-TIME ERROR!
+class Test {
+    public void m1(int i) { }       // Signature: m1(int)
+    private void m1(int i) { }      // Signature: m1(int) — DUPLICATE!
+}
+```
+
+**Compiler error**:
+
+```
+error: method m1(int) is already defined in class Test
+```
+
+### 21.6 Legal method variations (what CAN coexist in the same class)
+
+The following methods can coexist in the same class because they have different signatures:
+
+```java
+class Test {
+    // ✅ Different signatures (different parameter types)
+    void m1(int i) { }                    // Signature: m1(int)
+    void m1(float f) { }                  // Signature: m1(float)
+    void m1(String s) { }                 // Signature: m1(String)
+
+    // ✅ Different signatures (different parameter counts)
+    void m1() { }                         // Signature: m1()
+    void m1(int i, int j) { }             // Signature: m1(int, int)
+
+    // ✅ Different signatures (different parameter order)
+    void m2(int i, String s) { }          // Signature: m2(int, String)
+    void m2(String s, int i) { }          // Signature: m2(String, int)
+
+    // ✅ Different method names
+    void m3(int i) { }                    // Signature: m3(int)
+    void m4(int i) { }                    // Signature: m4(int)
+
+    // ✅ Same signature allowed in DIFFERENT classes (inheritance)
+    // This is the basis for method overriding (covered in detail later)
+}
+```
+
+All of these compile successfully because each has a unique signature.
+
+### 21.7 Why this matters: connection to Polymorphism
+
+Method signatures are the foundation for two critical polymorphic mechanisms:
+
+#### 21.7.1 Method Overloading
+
+- Multiple methods with the same name but different signatures in the same class.
+- Example:
+
+```java
+class Calculator {
+    // ✅ Overloading: all named "add" but different signatures
+    public int add(int a, int b) { return a + b; }                // Signature: add(int, int)
+    public double add(double a, double b) { return a + b; }       // Signature: add(double, double)
+    public int add(int a, int b, int c) { return a + b + c; }     // Signature: add(int, int, int)
+}
+
+Calculator calc = new Calculator();
+calc.add(5, 10);              // Calls add(int, int)
+calc.add(5.5, 10.5);          // Calls add(double, double)
+calc.add(5, 10, 15);          // Calls add(int, int, int)
+```
+
+Each call is matched to the correct method by its signature.
+
+#### 21.7.2 Method Overriding
+
+- A subclass defines a method with the same signature as its parent class.
+- Example:
+
+```java
+class Parent {
+    public void display() { System.out.println("Parent display"); }  // Signature: display()
+}
+
+class Child extends Parent {
+    @Override
+    public void display() { System.out.println("Child display"); }   // Signature: display()
+}
+```
+
+The same signature in parent and child enables polymorphic behavior (covered in detail later).
+
+### 21.8 Compiler error scenarios (exam-critical)
+
+| Scenario | Code | Error | Reason |
+|---|---|---|---|
+| Duplicate signature (same params) | `void m1(int i) { } void m1(int j) { }` | method m1(int) is already defined in class Test | Parameter names don't affect signature |
+| Return type ignored | `void m1(int i) { } int m1(int i) { }` | method m1(int) is already defined in class Test | Return type is not part of signature |
+| Access modifier ignored | `public void m1(int i) { } private void m1(int i) { }` | method m1(int) is already defined in class Test | Access modifiers are not part of signature |
+| Method not found | `t.m1(10.5);` where only `m1(int)` exists | cannot find symbol - method m1(double) | No method with signature m1(double) |
+| Wrong argument count | `t.m1(5, 10);` where only `m1(int)` exists | method m1(int) cannot be applied to given types | No method with signature m1(int, int) |
+
+### 21.9 Interview and exam checkpoints
+
+- **Trap question**: "Is the return type part of the method signature in Java?" Answer: No. Return type is excluded. (Note: different in C++.)
+- **Trap question**: "Can I have two methods with the same name and parameters but different access modifiers?" Answer: No. Access modifiers don't create different signatures.
+- **Trap question**: "Does changing a parameter name from `(int i)` to `(int j)` change the signature?" Answer: No. Only the type matters, not the name.
+- **Best practice**: Always remember the formula: Signature = Method Name + Parameter Types (in order). Everything else is ignored.
+
+### 21.10 Summary table
+
+| Component | Part of signature? | Impact on method identity | Example |
+|---|---|---|---|
+| **Method name** | ✅ Yes | Different names = different signatures | `m1(int)` vs `m2(int)` |
+| **Parameter types** | ✅ Yes | Different types = different signatures | `m1(int)` vs `m1(float)` |
+| **Parameter order** | ✅ Yes (if types differ) | Order matters | `m1(int, String)` vs `m1(String, int)` |
+| **Parameter names** | ❌ No | Names irrelevant to signature | `m1(int i)` vs `m1(int j)` — same signature |
+| **Return type** | ❌ No | Cannot disambiguate methods | `void m1(int)` vs `int m1(int)` — duplicate! |
+| **Access modifiers** | ❌ No | Visibility doesn't affect identity | `public void m1(int)` vs `private void m1(int)` — duplicate! |
+| **Static/final/synchronized** | ❌ No | Behavioral modifiers excluded | `static void m1(int)` vs `void m1(int)` — duplicate! |
+
+---
+
+Summary: A Method Signature in Java consists of the method name and parameter types in order. Parameter names, return type, and access modifiers are completely excluded from the signature and do not create method identity. The compiler enforces a strict no-duplicate-signatures rule within the same class. This foundational concept is essential for understanding Method Overloading and Method Overriding, the two pillars of Polymorphism.
+
+---
+
+## 22 Method Overloading
+
+Method Overloading is a core mechanism of Compile-Time Polymorphism where two or more methods inside the exact same class share the identical method name but possess different argument lists. Overloading simplifies API design by allowing developers to use a single method name for semantically equivalent operations on different data types, drastically reducing cognitive overhead compared to procedural languages like C.
+
+### 22.1 Core definition and requirements
+
+- **Definition**: Method Overloading occurs when two or more methods within the same class satisfy both of the following conditions:
+  1. They share the identical method name.
+  2. They possess different argument lists (different parameter types, counts, or sequential order).
+
+**Formal requirement**:
+
+$$\text{Overloaded Methods} = \text{Same Method Name} + \text{Different Signatures}$$
+
+- **Example**:
+
+```java
+public class Calculator {
+    // All named "add" but with different signatures
+    public void add(int a, int b) { ... }              // Signature: add(int, int)
+    public void add(double a, double b) { ... }        // Signature: add(double, double)
+    public void add(int a, int b, int c) { ... }       // Signature: add(int, int, int)
+}
+```
+
+All three methods are overloaded variants of `add` because they share the name but have different signatures.
+
+### 22.2 What does NOT affect overloading (critical constraints)
+
+The following characteristics are completely ignored when determining whether methods are overloaded:
+
+#### 22.2.1 Return type
+
+- Return type has no influence on overloading.
+- Two methods with the same name and parameters but different return types do NOT constitute overloading—they create a compile-time error.
+
+**Example (illegal)**:
+
+```java
+// ❌ COMPILE-TIME ERROR!
+class Test {
+    public void m1(int i) { }       // Signature: m1(int)
+    public int m1(int i) { }        // Signature: m1(int) — DUPLICATE, not overloading
+}
+```
+
+**Error**:
+
+```
+error: method m1(int) is already defined in class Test
+```
+
+#### 22.2.2 Access modifiers
+
+- Access modifiers (`public`, `private`, `protected`, `static`, etc.) are completely ignored.
+- Changing access modifier alone does not create overloading.
+
+**Example (illegal)**:
+
+```java
+// ❌ COMPILE-TIME ERROR!
+class Test {
+    public void m1(int i) { }       // Signature: m1(int)
+    private void m1(int i) { }      // Signature: m1(int) — DUPLICATE, not overloading
+}
+```
+
+#### 22.2.3 Thrown exceptions
+
+- Exceptions declared in the `throws` clause do not affect overloading.
+
+**Example (illegal)**:
+
+```java
+// ❌ COMPILE-TIME ERROR!
+class Test {
+    public void m1(int i) throws IOException { }       // Signature: m1(int)
+    public void m1(int i) throws SQLException { }      // Signature: m1(int) — DUPLICATE
+}
+```
+
+#### 22.2.4 Other modifiers (final, synchronized, strictfp)
+
+- Behavioral modifiers like `final`, `synchronized`, and `strictfp` are excluded from overloading consideration.
+
+### 22.3 The Java vs. C contrast (why overloading matters)
+
+One of the most powerful arguments for method overloading is its contrast with procedural, non-OOP languages like C, which strictly disallow overloading. This section highlights why overloading is a game-changer for API design and developer productivity.
+
+#### 22.3.1 The C approach (no overloading)
+
+In C, no two functions can ever share the same name. For each variation of behavior, you must create a completely different function name.
+
+**Example: Absolute value utility functions in C**
+
+```c
+int abs(int x) { return x < 0 ? -x : x; }        // For int
+long labs(long x) { return x < 0 ? -x : x; }     // For long
+float fabs(float x) { return x < 0 ? -x : x; }   // For float
+double dabs(double x) { return x < 0 ? -x : x; } // For double
+```
+
+**The cognitive overhead**:
+- Developers must memorize four distinct function names for the exact same conceptual operation: absolute value.
+- The library documentation explodes in size with thousands of similar but differently-named functions.
+- Code readability suffers: readers must context-switch between `abs()`, `labs()`, `fabs()`, `dabs()`.
+- This cognitive load increases with library size and complexity.
+
+#### 22.3.2 The Java approach (with overloading)
+
+In Java, you define a single unified method name and let overloading handle the dispatch automatically based on argument types.
+
+**Example: Absolute value with overloading in Java**
+
+```java
+public class MathUtils {
+    public static int abs(int x) { return x < 0 ? -x : x; }           // Signature: abs(int)
+    public static long abs(long x) { return x < 0 ? -x : x; }         // Signature: abs(long)
+    public static float abs(float x) { return x < 0 ? -x : x; }       // Signature: abs(float)
+    public static double abs(double x) { return x < 0 ? -x : x; }     // Signature: abs(double)
+}
+
+// Usage
+int a = MathUtils.abs(-5);           // Calls abs(int)
+long b = MathUtils.abs(-50L);        // Calls abs(long)
+float c = MathUtils.abs(-5.5f);      // Calls abs(float)
+double d = MathUtils.abs(-5.5);      // Calls abs(double)
+```
+
+**The benefits**:
+- Single, unified method name: `abs()` is easier to remember and discover.
+- Compiler automatically routes to the correct variant based on argument type.
+- API is simpler and more intuitive.
+- Cognitive load dramatically reduced.
+- Code is more readable: readers always see `abs()`, not a mix of `abs`, `labs`, `fabs`, `dabs`.
+
+**Comparison**:
+
+| Aspect | C (No Overloading) | Java (With Overloading) |
+|---|---|---|
+| Function names | `abs`, `labs`, `fabs`, `dabs` | Single: `abs` |
+| Developer memory load | High (must memorize 4+ names) | Low (single name) |
+| Code readability | Poor (scattered similar names) | Excellent (consistent naming) |
+| API complexity | Explodes with library size | Scales elegantly |
+| Error risk | Higher (typo in function name) | Lower (single canonical name) |
+
+### 22.4 Implementation walkthrough: The PolyTest model
+
+Durga Sir presents a clean, practical class demonstrating three overloaded variants of a single method `m1()`.
+
+```java
+public class PolyTest {
+    // Overloaded Variant 1: No arguments
+    public void m1() {
+        System.out.println("no-arg method");
+    }
+
+    // Overloaded Variant 2: Single int argument
+    public void m1(int i) {
+        System.out.println("int-arg method: " + i);
+    }
+
+    // Overloaded Variant 3: Single double argument
+    public void m1(double d) {
+        System.out.println("double-arg method: " + d);
+    }
+
+    public static void main(String[] args) {
+        PolyTest t = new PolyTest();
+
+        t.m1();       // Call 1: No arguments
+        t.m1(10);     // Call 2: Pass int
+        t.m1(10.5);   // Call 3: Pass double
+    }
+}
+```
+
+**Execution output**:
+
+```
+no-arg method
+int-arg method: 10
+double-arg method: 10.5
+```
+
+**Analysis**:
+
+1. `t.m1()` → Matches signature `m1()` → Calls Variant 1
+2. `t.m1(10)` → Argument is `int` → Matches signature `m1(int)` → Calls Variant 2
+3. `t.m1(10.5)` → Argument is `double` → Matches signature `m1(double)` → Calls Variant 3
+
+Each call targets the correct overloaded method automatically through compiler resolution.
+
+### 22.5 Method resolution mechanism (compiler-driven dispatch)
+
+The architectural centerpiece of method overloading is **Method Resolution**—the algorithmic process where the compiler determines exactly which overloaded method should execute for a given method call.
+
+#### 22.5.1 The overloading commandment
+
+**Rule**: In method overloading, method resolution is handled **exclusively by the compiler at compile-time**, driven strictly by the **Reference Type** of the variable, not by runtime object state.
+
+**Key insight**: Because resolution happens before the program runs, the runtime state of the object is completely bypassed during lookup and matching. This is what makes overloading deterministic and predictable.
+
+#### 22.5.2 Compile-time resolution process
+
+When the compiler encounters a method call like `t.m1(10)`, it performs these steps:
+
+1. **Extract reference type**: Examine the declared type of variable `t` (e.g., `PolyTest`).
+2. **Analyze arguments**: Determine the types of arguments passed (e.g., `10` is `int`).
+3. **Construct method signature**: Build the lookup key from method name + argument types (e.g., `m1(int)`).
+4. **Search method table**: Look up the signature in the class's internal method table.
+5. **Match and bind**: If found, bind the call to that specific method at compile-time.
+6. **Generate bytecode**: Emit bytecode that hardcodes the method binding (no runtime lookup needed).
+
+**Example trace**:
+
+```java
+PolyTest t = new PolyTest();
+t.m1(10);  // Compiler processes this call
+```
+
+Compiler reasoning:
+- Reference type: `PolyTest`
+- Argument type: `int` (literal `10`)
+- Lookup key: `m1(int)`
+- Found in method table: ✅ Yes
+- Binding: `t.m1(10)` → call `PolyTest.m1(int)` (hardcoded in bytecode)
+- Result: No runtime overhead; the correct method is already determined
+
+#### 22.5.3 Why reference type matters (not runtime object type)
+
+**Critical principle**: The compiler uses the **reference type** (declared type of the variable), not the **runtime object type**, to resolve overloaded method calls.
+
+**Example demonstrating the distinction**:
+
+```java
+class Animal { void speak() { System.out.println("Animal sound"); } }
+class Dog extends Animal { void speak() { System.out.println("Woof"); } }
+
+public class Test {
+    // Overloaded method: accepts Animal reference
+    public void process(Animal a) { System.out.println("Processing Animal"); }
+    
+    // Overloaded method: accepts Dog reference
+    public void process(Dog d) { System.out.println("Processing Dog"); }
+
+    public static void main(String[] args) {
+        Test t = new Test();
+        
+        Animal a = new Dog();        // Reference type: Animal, Object type: Dog
+        t.process(a);                // Compiler sees: process(Animal) — calls first variant
+        
+        Dog d = new Dog();           // Reference type: Dog, Object type: Dog
+        t.process(d);                // Compiler sees: process(Dog) — calls second variant
+    }
+}
+```
+
+**Output**:
+
+```
+Processing Animal
+Processing Dog
+```
+
+**Explanation**:
+- First call: `a` is declared as `Animal` (reference type) even though it holds a `Dog` object. Compiler resolves to `process(Animal)`.
+- Second call: `d` is declared as `Dog` (reference type) and holds a `Dog` object. Compiler resolves to `process(Dog)`.
+
+The runtime object type (`Dog`) is irrelevant to overloading resolution; only the reference type matters.
+
+### 22.6 Aliases for method overloading (three names, one concept)
+
+Method overloading is known by three equivalent technical names in computer science, all describing the same underlying mechanism:
+
+#### 22.6.1 Compile-Time Polymorphism
+
+- **Meaning**: The compiler determines which method to call at compile-time, before the program runs.
+- **Characteristic**: The method binding is fixed and deterministic at build time.
+
+#### 22.6.2 Static Polymorphism
+
+- **Meaning**: The method resolution is static (fixed) rather than dynamic (determined at runtime).
+- **Characteristic**: No runtime lookup or decision-making is required.
+
+#### 22.6.3 Early Binding
+
+- **Meaning**: Method binding occurs early (at compile-time) rather than late (at runtime).
+- **Characteristic**: The bytecode already contains the exact method reference; no indirect method table lookup happens at runtime.
+
+**All three names describe the same mechanism**:
+
+$$\text{Compile-Time Polymorphism} = \text{Static Polymorphism} = \text{Early Binding}$$
+
+### 22.7 Overloading vs. Overriding (quick distinction)
+
+This is a common source of confusion. Here's the key difference:
+
+| Aspect | Method Overloading | Method Overriding |
+|---|---|---|
+| **Definition** | Multiple methods with same name, different signatures in the **same class** | Child class method with same name and signature as parent class method |
+| **Resolution** | Compile-time (Static Polymorphism) | Runtime (Dynamic Polymorphism) |
+| **Requirements** | Different signatures (parameter types/count/order) | **Identical** signature (name + parameters) |
+| **Return type** | Can differ (doesn't affect overloading) | Must be compatible (covariant return types allowed in Java 5+) |
+| **Access modifier** | Can differ | Cannot be more restrictive |
+| **Scope** | Same class | Parent and child classes |
+| **Example** | `add(int)` and `add(double)` in same class | `toString()` in child overrides `toString()` in parent |
+
+### 22.8 Legal overloading scenarios (what IS allowed)
+
+These method combinations all constitute valid overloading within the same class:
+
+```java
+public class ValidOverloading {
+    // ✅ Different number of parameters
+    public void m1() { }
+    public void m1(int i) { }
+    public void m1(int i, int j) { }
+
+    // ✅ Different parameter types
+    public void m2(int i) { }
+    public void m2(double d) { }
+    public void m2(String s) { }
+
+    // ✅ Different parameter order
+    public void m3(int i, String s) { }
+    public void m3(String s, int i) { }
+
+    // ✅ Different return types (allowed!)
+    public int m4(int i) { return i; }
+    public double m4(double d) { return d; }
+
+    // ✅ Different access modifiers (allowed!)
+    public void m5(int i) { }
+    private void m5(String s) { }
+
+    // ✅ Different thrown exceptions (allowed!)
+    public void m6(int i) throws IOException { }
+    public void m6(String s) throws SQLException { }
+}
+```
+
+All combinations above are valid overloading.
+
+### 22.9 Illegal overloading scenarios (what is NOT allowed)
+
+These combinations do NOT constitute valid overloading and result in compile-time errors:
+
+```java
+// ❌ ILLEGAL: Identical signatures
+class Test {
+    public void m1(int i) { }
+    public void m1(int i) { }  // ERROR: duplicate method
+}
+
+// ❌ ILLEGAL: Only return type differs
+class Test {
+    public void m1(int i) { }
+    public int m1(int i) { }   // ERROR: duplicate method
+}
+
+// ❌ ILLEGAL: Only access modifier differs
+class Test {
+    public void m1(int i) { }
+    private void m1(int i) { } // ERROR: duplicate method
+}
+
+// ❌ ILLEGAL: Only thrown exception differs
+class Test {
+    public void m1(int i) throws IOException { }
+    public void m1(int i) throws SQLException { }  // ERROR: duplicate method
+}
+```
+
+### 22.10 Compiler error scenarios (method overloading traps)
+
+| Scenario | Code | Error | Reason |
+|---|---|---|---|
+| Identical signatures | `void m1(int) { } void m1(int) { }` | method m1(int) is already defined | Signatures identical; not overloading |
+| Return type only differs | `void m1(int) { } int m1(int) { }` | method m1(int) is already defined | Return type ignored; creates duplicate |
+| Access modifier only differs | `public void m1(int) { } private void m1(int) { }` | method m1(int) is already defined | Modifier ignored; creates duplicate |
+| No matching overload | `t.m1(10.5);` where only `m1(int)` exists | cannot find symbol - method m1(double) | No signature `m1(double)` in method table |
+| Ambiguous overloading | `void m1(int) { } void m1(long) { } ... t.m1(5);` | reference to m1 is ambiguous | Both int and long could match |
+
+### 22.11 Real-world overloading examples (Java standard library)
+
+The Java standard library uses method overloading extensively:
+
+#### 22.11.1 System.out.println()
+
+```java
+// All named "println" but different signatures
+System.out.println();              // println()
+System.out.println(true);          // println(boolean)
+System.out.println(int);           // println(int)
+System.out.println(long);          // println(long)
+System.out.println(float);         // println(float)
+System.out.println(double);        // println(double)
+System.out.println(char);          // println(char)
+System.out.println(String);        // println(String)
+System.out.println(Object);        // println(Object)
+```
+
+All overloads provide the same semantic behavior (print a value) but handle different types.
+
+#### 22.11.2 String.valueOf()
+
+```java
+String.valueOf(true);              // valueOf(boolean)
+String.valueOf(5);                 // valueOf(int)
+String.valueOf(5L);                // valueOf(long)
+String.valueOf(5.5f);              // valueOf(float)
+String.valueOf(5.5);               // valueOf(double)
+String.valueOf(new Object());      // valueOf(Object)
+```
+
+#### 22.11.3 Math.min() / Math.max()
+
+```java
+Math.min(5, 10);                   // min(int, int)
+Math.min(5L, 10L);                 // min(long, long)
+Math.min(5.5f, 10.5f);             // min(float, float)
+Math.min(5.5, 10.5);               // min(double, double)
+```
+
+### 22.12 Interview and exam checkpoints
+
+- **Trap question**: "Are methods with the same name and parameters but different return types overloaded?" Answer: No. Return type is ignored. This creates a duplicate method error.
+- **Trap question**: "Does access modifier affect overloading?" Answer: No. Overloading is determined solely by method name and parameter types.
+- **Trap question**: "Is method overloading resolved at compile-time or runtime?" Answer: Compile-time (Static Polymorphism / Early Binding).
+- **Trap question**: "In overloading, does the reference type or runtime object type determine which method is called?" Answer: Reference type. The compiler uses the declared type.
+- **Best practice**: Use overloading to provide a unified, intuitive API for semantically equivalent operations on different data types.
+
+### 22.13 Summary table
+
+| Aspect | Details |
+|---|---|
+| **Definition** | Multiple methods with same name but different signatures in the same class |
+| **Requirements** | Same method name + Different parameter types/count/order |
+| **Resolution** | Compile-time (Static Polymorphism, Early Binding) |
+| **Reference vs Runtime** | Compiler uses reference type, not runtime object type |
+| **What matters** | Method name + Parameter types (in order) |
+| **What doesn't matter** | Return type, access modifiers, thrown exceptions |
+| **C contrast** | C requires unique names (abs, labs, fabs); Java uses single name with overloading |
+| **Real-world example** | `System.out.println()` has 9+ overloads for different types |
+| **Benefit** | Reduced cognitive load, cleaner API, more intuitive code |
+| **Common trap** | Thinking return type or access modifier affects overloading |
+
+---
+
+Summary: Method Overloading is Compile-Time Polymorphism where multiple methods share the same name but have different signatures. Resolution is handled entirely by the compiler based on the reference type and argument types at compile-time. Return types, access modifiers, and thrown exceptions do not affect overloading. Java's overloading dramatically simplifies API design compared to procedural languages like C, where functions must have unique names for each variant.
+
+---
+
+## 22.1 Method Overloading Case Study-1: Automatic Type Promotion
+
+This case study explores how the Java compiler uses automatic promotion of primitive data types during compile-time method resolution. When an exact type match is not found for an overloaded method call, the compiler attempts to widen the argument type and search again, following a strict promotion hierarchy.
+
+### 22.1.1 Conceptual foundation: Automatic promotion
+
+When you pass an argument into an overloaded method, the compiler immediately scans the class's method table for a method with an exact matching parameter data type.
+
+**The Promotion Rule**:
+
+If an exact type match is not available, the compiler does **not** throw an error immediately. Instead, it attempts to automatically promote (widen) the argument data type to its next highest compatible primitive type and searches the method table again. The compiler repeats this widening process step-by-step until it finds a match or runs out of compatible wider types, at which point it throws a compilation error.
+
+**Key principle**: Widening is safe (no data loss) and is allowed. Narrowing (downcasting) is not allowed because it can cause data loss.
+
+### 22.1.2 The primitive promotion hierarchy
+
+Java defines a strict promotion pathway for primitive types. The compiler follows this hierarchy when attempting to find a matching overloaded method:
+
+$$\text{byte} \to \text{short} \to \text{int} \to \text{long} \to \text{float} \to \text{double}$$
+
+$$\text{char} \to \text{int}$$
+
+**Key observation**: 
+- Both `byte` and `short` promote up to `int` (they skip directly to `int`, not to each other).
+- `char` bypasses `short` and goes directly to `int`.
+- `long` can promote to `float` and then to `double`.
+- `double` is the highest and cannot be promoted further.
+
+**The promotion hierarchy visualized**:
+
+```
+┌─────────────────────────────────────────────────┐
+│        Java Primitive Type Promotion            │
+├─────────────────────────────────────────────────┤
+│                                                 │
+│  byte  ─┐                                       │
+│         ├─→ int ─→ long ─→ float ─→ double     │
+│  short ─┘                                       │
+│                                                 │
+│  char  ──────────┘                              │
+│                                                 │
+└─────────────────────────────────────────────────┘
+```
+
+### 22.1.3 Case study implementation: CaseStudyOne class
+
+Durga Sir maps out a practical class structure containing two overloaded methods: one taking an `int` and one taking a `float`.
+
+```java
+public class CaseStudyOne {
+    // Overloaded Variant 1: int argument
+    public void m1(int i) {
+        System.out.println("int-arg method");
+    }
+
+    // Overloaded Variant 2: float argument
+    public void m1(float f) {
+        System.out.println("float-arg method");
+    }
+
+    public static void main(String[] args) {
+        CaseStudyOne t = new CaseStudyOne();
+
+        // Call 1: Exact Match (int)
+        t.m1(10);       // Outputs: "int-arg method"
+
+        // Call 2: Exact Match (float)
+        t.m1(10.5f);    // Outputs: "float-arg method"
+
+        // Call 3: Promotion (char)
+        t.m1('a');      // Outputs: "int-arg method"
+
+        // Call 4: Promotion (long)
+        t.m1(10L);      // Outputs: "float-arg method"
+
+        // Call 5: Compilation Collapse (double)
+        // t.m1(10.5);  // ❌ COMPILE-TIME ERROR!
+    }
+}
+```
+
+**Expected output**:
+
+```
+int-arg method
+float-arg method
+int-arg method
+float-arg method
+```
+
+### 22.1.4 Step-by-step resolution trace
+
+#### 22.1.4.1 Call 1: t.m1(10);
+
+**Argument passed**: `int` (literal `10` is an `int`)
+
+**Compiler resolution**:
+1. Scans class method table for exact match
+2. Finds signature `m1(int)` ✅ Exact match found
+3. Executes Variant 1 natively (no promotion needed)
+
+**Output**: `"int-arg method"`
+
+**Analysis**: This is the simplest case—exact type match requires no promotion.
+
+#### 22.1.4.2 Call 2: t.m1(10.5f);
+
+**Argument passed**: `float` (suffix `f` explicitly declares it as `float`)
+
+**Compiler resolution**:
+1. Scans class method table for exact match
+2. Finds signature `m1(float)` ✅ Exact match found
+3. Executes Variant 2 natively (no promotion needed)
+
+**Output**: `"float-arg method"`
+
+**Analysis**: Explicit float literal matches the second overload directly.
+
+#### 22.1.4.3 Call 3: t.m1('a'); (The Char Promotion)
+
+**Argument passed**: `char` (character `'a'`)
+
+**Compiler resolution process**:
+
+1. **Step 1**: Scans for exact match `m1(char)` → Not found ❌
+2. **Step 2**: Applies promotion rule: char → int
+3. **Step 3**: Scans for `m1(int)` → Found ✅
+4. **Step 4**: Binds call to Variant 1
+
+**Promotion flow**:
+
+```
+char 'a' ──→ (promoted to int) ──→ Matches m1(int)
+```
+
+**Output**: `"int-arg method"`
+
+**Analysis**: The compiler automatically promotes the char argument to int (the next tier in the hierarchy), finds a match, and executes Variant 1. This is a **Promotion Level 1** case.
+
+#### 22.1.4.4 Call 4: t.m1(10L); (The Long Promotion)
+
+**Argument passed**: `long` (suffix `L` explicitly declares it as `long`)
+
+**Compiler resolution process**:
+
+1. **Step 1**: Scans for exact match `m1(long)` → Not found ❌
+2. **Step 2**: Looks at promotion hierarchy from `long`:
+   - `long` cannot demote to `int` (data loss risk, blocked)
+   - `long` can promote to `float` ✅
+3. **Step 3**: Scans for `m1(float)` → Found ✅
+4. **Step 4**: Binds call to Variant 2
+
+**Promotion flow**:
+
+```
+long 10L ──→ (promoted to float) ──→ Matches m1(float)
+```
+
+**Output**: `"float-arg method"`
+
+**Analysis**: The compiler cannot demote `long` to `int` (that would risk data loss), but it can widen `long` to `float`. This is a **Promotion Level 2** case, requiring a two-step promotion up the hierarchy.
+
+#### 22.1.4.5 Call 5: t.m1(10.5); (The Failure Case)
+
+**Argument passed**: `double` (un-suffixed decimal floating-point literals default to `double`)
+
+**Compiler resolution process**:
+
+1. **Step 1**: Scans for exact match `m1(double)` → Not found ❌
+2. **Step 2**: Looks at promotion hierarchy from `double`:
+   - `double` is the **highest** primitive type
+   - No type can promote `double` further ❌
+   - Demoting to `float` or `int` is blocked (data loss risk) ❌
+3. **Step 3**: No match found; compilation fails
+
+**Error message**:
+
+```
+error: no suitable method found for m1(double)
+  required: int or float
+  found: double
+  reason: actual argument double cannot be converted to int by method invocation conversion
+```
+
+**Output**: ❌ **COMPILE-TIME ERROR**
+
+**Analysis**: `double` is at the top of the promotion hierarchy and cannot be promoted further. Downcasting (narrowing) is strictly forbidden because it risks precision loss. The compiler has no valid promotion path, so compilation fails immediately.
+
+### 22.1.5 Promotion rules summary table
+
+| Parameter Type | Search 1 | Search 2 | Search 3 | Search 4 | Result |
+|---|---|---|---|---|---|
+| `int` | `m1(int)` ✅ | — | — | — | **Matched** |
+| `float` | `m1(float)` ✅ | — | — | — | **Matched** |
+| `char` | `m1(char)` ❌ | `m1(int)` ✅ | — | — | **Matched** (promoted) |
+| `long` | `m1(long)` ❌ | `m1(float)` ✅ | — | — | **Matched** (promoted) |
+| `double` | `m1(double)` ❌ | `m1(float)` ❌ | Cannot promote higher | — | **ERROR** |
+
+**Key observations**:
+- Exact matches require zero promotions.
+- `char` requires one promotion step (`char` → `int`).
+- `long` requires widening to the next compatible type (`long` → `float`).
+- `double` cannot find a promotion path; no suitable method exists.
+
+### 22.1.6 Execution trace summary checklist
+
+| Call | Parameter Type | Target Search | Promotional Action | Resolved Method | Output |
+|---|---|---|---|---|---|
+| `t.m1(10)` | `int` | `m1(int)` | Exact match (no promotion) | `m1(int)` | `"int-arg method"` |
+| `t.m1(10.5f)` | `float` | `m1(float)` | Exact match (no promotion) | `m1(float)` | `"float-arg method"` |
+| `t.m1('a')` | `char` | `m1(char)` | Promoted to `int` | `m1(int)` | `"int-arg method"` |
+| `t.m1(10L)` | `long` | `m1(long)` | Promoted to `float` | `m1(float)` | `"float-arg method"` |
+| `t.m1(10.5)` | `double` | `m1(double)` | Cannot promote; max type reached | — | **❌ COMPILE ERROR** |
+
+### 22.1.7 Critical compilation rules for promotion
+
+**Rule 1: Exact match preferred**
+- If an exact type match exists, it is always chosen first. No promotion occurs.
+
+**Rule 2: Widening is allowed**
+- Automatic widening (promotion to a larger type) is permitted because no data loss occurs.
+- Example: `int` → `long`, `float` → `double`, `char` → `int`.
+
+**Rule 3: Narrowing is blocked**
+- Automatic narrowing (demotion to a smaller type) is not allowed because it risks data loss.
+- Example: `long` → `int` (would lose the upper 32 bits) is forbidden.
+- Exception: `double` → `float` (would lose precision) is also forbidden automatically.
+
+**Rule 4: Maximum type reached = error**
+- If a type reaches the top of the hierarchy (`double` for numeric types) and no exact match exists, promotion cannot proceed, and compilation fails.
+
+**Rule 5: Promotion follows strict hierarchy**
+- The compiler follows the official promotion chain. Shortcuts or alternative paths are not allowed.
+
+### 22.1.8 Why the double case fails
+
+The failure case (`t.m1(10.5)`) deserves special attention because it reveals an important principle:
+
+**The double problem**:
+- `double` is the largest, most general numeric primitive type in Java.
+- It can hold any value that `int`, `long`, `float` can hold (and more).
+- However, no method signature exists for `double`.
+- The compiler **cannot** automatically downcast `double` to `float` or `int` because:
+  - **Data loss risk**: Converting `double` → `float` loses precision.
+  - **No implicit narrowing**: Java's type system forbids automatic narrowing conversions.
+  - **Safety principle**: The compiler must ensure no accidental data corruption.
+
+**Solution alternatives**:
+If you actually need to call a method with a `double` argument when only `int` or `float` overloads exist:
+
+```java
+CaseStudyOne t = new CaseStudyOne();
+
+// Option 1: Explicit cast to float (data loss)
+t.m1((float) 10.5);        // ✅ Legal; casts double to float explicitly
+
+// Option 2: Use a float literal
+t.m1(10.5f);               // ✅ Legal; creates float directly
+
+// Option 3: Add an overload for double
+public void m1(double d) { System.out.println("double-arg method"); }
+```
+
+### 22.1.9 Promotion hierarchy reference (for all primitive types)
+
+Complete promotion rules for all primitive types:
+
+```
+byte   ──→ short ──→ int ──→ long ──→ float ──→ double
+                      ↑
+char   ─────────────┘
+
+boolean: No promotion; not part of numeric hierarchy
+```
+
+**Detailed rules**:
+
+| Source Type | Can promote to | Cannot promote to |
+|---|---|---|
+| `byte` | short, int, long, float, double | — |
+| `short` | int, long, float, double | byte, char |
+| `char` | int, long, float, double | byte, short |
+| `int` | long, float, double | byte, short, char |
+| `long` | float, double | byte, short, char, int |
+| `float` | double | byte, short, char, int, long |
+| `double` | — (max type) | All narrowing blocked |
+| `boolean` | — (not numeric) | All promotions blocked |
+
+### 22.1.10 Real-world implications for API design
+
+Understanding type promotion has practical implications when designing overloaded methods:
+
+**Implication 1: Avoid ambiguous overloads**
+
+```java
+// ⚠️ Potentially problematic design
+public void process(int i) { }
+public void process(long l) { }
+
+// Calling with byte:
+process((byte) 5);  // Promotes to int; calls first method
+```
+
+**Implication 2: Document promotion behavior**
+
+```java
+/**
+ * Processes an integer value.
+ * Note: byte and short arguments are automatically promoted to int.
+ * Char arguments are also promoted to int.
+ */
+public void process(int i) { }
+```
+
+**Implication 3: Use explicit types for clarity**
+
+```java
+// Less clear
+double result = calculate(10);  // Is this 10.0 or 10?
+
+// More clear
+double result = calculate(10.0);  // Explicitly double
+int result = calculate(10);       // Explicitly int
+```
+
+### 22.1.11 Interview and exam checkpoints
+
+- **Trap question**: "If I pass a `char` to a method expecting `int`, what happens?" Answer: The compiler automatically promotes `char` to `int` and calls the method.
+- **Trap question**: "Can a `double` be automatically converted to `float`?" Answer: No. Automatic narrowing is forbidden. You must explicitly cast.
+- **Trap question**: "What does the compiler do if no promotion path exists?" Answer: It throws a compile-time error `no suitable method found`.
+- **Trap question**: "Is `boolean` part of the promotion hierarchy?" Answer: No. `boolean` is not a numeric type and cannot be promoted.
+- **Best practice**: Add overloads for the types you expect, but be aware of the automatic promotion hierarchy.
+
+### 22.1.12 Summary: Automatic type promotion in method overloading
+
+**Key takeaways**:
+
+1. **Exact match first**: If an exact type match exists in the method table, it is always chosen.
+2. **Automatic widening**: If no exact match, the compiler attempts to widen (promote) the argument type following the strict promotion hierarchy.
+3. **No automatic narrowing**: Narrowing conversions (e.g., `double` → `float`) are forbidden to prevent data loss.
+4. **Hierarchy is fixed**: The promotion path is: `byte` → `short` → `int` → `long` → `float` → `double`, with `char` → `int`.
+5. **Maximum type error**: If the argument type reaches the top of the hierarchy (`double`) with no match, compilation fails.
+6. **Deterministic resolution**: Because promotion is automatic and follows a fixed hierarchy, method resolution is completely deterministic and can be verified at compile-time.
+
+---
+
+Summary: Method Overloading Case Study-1 demonstrates how the Java compiler uses automatic type promotion to resolve overloaded method calls. When an exact type match is not found, the compiler widens the argument type through a strict promotion hierarchy (byte/short/char → int → long → float → double). Narrowing (downcasting) is forbidden to prevent data loss. If promotion reaches the top of the hierarchy without finding a match, compilation fails. Understanding this mechanism is critical for designing clear APIs and avoiding unexpected method invocations.
