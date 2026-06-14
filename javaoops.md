@@ -1960,3 +1960,162 @@ c.m1() # prints "P1" because P1 is listed first in C(P1, P2)
 
 
 
+---
+
+## 20 Cyclic Inheritance
+
+Cyclic Inheritance is a scenario where a class attempts to inherit from itself, either directly or indirectly, creating a closed loop or "cycle" in the inheritance tree. Java strictly blocks cyclic inheritance at compile-time to prevent logically impossible and redundant inheritance relationships.
+
+### 20.1 Core definition and problem statement
+
+- **Definition**: Cyclic Inheritance occurs when a class inherits from itself (directly) or when a circular chain of parent-child dependencies forms (indirectly).
+- **Design consequence**: Cyclic inheritance is logically impossible and redundant — the primary purpose of inheritance is to import and reuse code from an external parent class. Circular dependencies violate this principle and create infinite recursion hazards if allowed.
+- **Java compiler stance**: Java strictly blocks cyclic inheritance at compile-time and throws the error:
+
+```
+error: cyclic inheritance involving [ClassName]
+```
+
+### 20.2 Direct Cyclic Inheritance (self-inheritance)
+
+**Pattern**: A class explicitly declares that it extends itself.
+
+**Code example** (illegal):
+
+```java
+// ❌ COMPILE-TIME ERROR!
+class A extends A { }
+```
+
+**Compiler output** when attempting to compile:
+
+```
+error: cyclic inheritance involving A
+```
+
+**Why it's nonsensical**: The objective of inheritance is code reuse — bringing members from an external parent into the child class. Writing `class A extends A` means Class A is attempting to reuse its own members from itself, which are already natively available within its own body. This is completely redundant and adds no value. Self-members are always available locally; explicit inheritance from oneself provides zero additional functionality.
+
+### 20.3 Indirect Cyclic Inheritance (circular chain)
+
+**Pattern**: Two or more classes form a circular dependency chain, where each class extends the next in a way that eventually loops back to the starting class.
+
+**Code example** (illegal):
+
+```java
+// ❌ COMPILE-TIME ERROR!
+class A extends B { }
+class B extends A { }
+```
+
+**Compiler output** when attempting to compile both classes:
+
+```
+error: cyclic inheritance involving A
+error: cyclic inheritance involving B
+```
+
+**Why it's logically impossible**: Class A asserts that it needs all properties and methods from Class B. At the same time, Class B asserts that it needs all properties and methods from Class A. This creates a shared, codependent identity — two classes that depend on each other to define themselves, which is a logical dead-end. The inheritance hierarchy is supposed to form a directed acyclic graph (DAG); cycles violate this structure and make the inheritance model undefined.
+
+### 20.4 Longer chains (generalized indirect cyclic inheritance)
+
+**Pattern**: The cycle can involve more than two classes.
+
+**Code example** (illegal):
+
+```java
+// ❌ COMPILE-TIME ERROR!
+class A extends B { }
+class B extends C { }
+class C extends A { }   // completes the cycle A -> B -> C -> A
+```
+
+**Why the compiler rejects this**: The compiler performs a cycle-detection check during compilation. As it processes each class declaration, it traces the superclass hierarchy. If it ever finds that a class would eventually reach itself through the superclass chain, it halts with a cyclic-inheritance error.
+
+### 20.5 Compiler cycle-detection mechanism
+
+- **When checked**: Cyclic inheritance is detected at compile-time during the class declaration/loading phase.
+- **Algorithm**: The compiler traces the superclass chain for each class and checks whether the chain ever loops back to the class itself.
+- **Scope**: Cycles are detected at compile-time, before any code is executed. This prevents runtime reflection or classloading issues.
+
+Example compiler session:
+
+```bash
+$ cat A.java
+class A extends B { }
+class B extends A { }
+
+$ javac A.java
+A.java:1: error: cyclic inheritance involving A
+class A extends B { }
+^
+A.java:2: error: cyclic inheritance involving B
+class B extends A { }
+^
+2 errors
+```
+
+### 20.6 Design rationale and solutions
+
+- **Rationale for blocking cycles**: Inheritance is meant to model an "is-a" relationship and to enable code reuse. Cycles destroy both: they make the relationship circular and nonsensical, and they provide no code to inherit (both classes would be waiting for each other to define common methods).
+
+- **Recommended solution when you encounter a cycle**:
+  - **Merge into one class**: If two classes are so interdependent that they form a cycle, consider combining them into a single unified class.
+
+Example (solution):
+
+```java
+// ❌ Before (circular and rejected by compiler)
+class A extends B { int x; }
+class B extends A { int y; }
+
+// ✅ After (merged into one class)
+class A {
+    int x;
+    int y;
+}
+```
+
+- **Use composition for related behavior**: If the classes model different concerns that are closely coupled, use composition (object delegation) to link them rather than inheritance.
+
+Example (composition approach):
+
+```java
+// ✅ Better design using composition
+class A {
+    private B helper; // delegate to B for certain behavior
+    
+    A(B helper) { this.helper = helper; }
+    
+    void doSomething() { helper.doWork(); }
+}
+
+class B {
+    void doWork() { /* B's logic */ }
+}
+```
+
+### 20.7 Relationship to the inheritance tree (DAG constraint)
+
+- **Inheritance tree requirement**: Java's inheritance model requires that the superclass hierarchy form a directed acyclic graph (DAG) rooted ultimately at `java.lang.Object`.
+- **No cycles allowed**: A DAG explicitly excludes cycles. Every class must have a unique path to `Object` through its superclass chain, with no possibility of looping.
+
+### 20.8 Interview and exam checkpoints
+
+- **Trap question**: "Can a class inherit from a class that inherits from it?" Answer: No, the compiler detects and blocks cyclic inheritance.
+- **Trap question**: "What error does `class A extends A` produce?" Answer: `error: cyclic inheritance involving A` (compile-time error).
+- **Best practice**: If you're tempted to create a cycle, reconsider your design. Either merge the classes or use composition.
+
+### 20.9 Summary table
+
+| Aspect | Details |
+|---|---|
+| **Definition** | A class inheriting from itself directly or indirectly through a circular chain of parent-child relationships |
+| **Direct form** | `class A extends A { }` — a class extending itself (self-inheritance) |
+| **Indirect form** | `class A extends B { } class B extends A { }` — circular dependency chain |
+| **Compiler detection** | Compile-time error: `error: cyclic inheritance involving [ClassName]` |
+| **Why blocked** | Cycles violate the inheritance tree structure (DAG requirement), create logically impossible relationships, and provide zero code reuse benefit |
+| **Recommended fix** | Merge the interdependent classes into one, or use composition to break the cycle |
+
+---
+
+Summary: Cyclic Inheritance is logically impossible and redundant. Java's compiler detects and blocks all forms (direct self-inheritance and indirect circular chains) at compile-time. When you encounter a cycle in design, merge the classes or redesign using composition.
