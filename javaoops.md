@@ -1956,9 +1956,6 @@ c.m1() # prints "P1" because P1 is listed first in C(P1, P2)
 | Java class multiple-extends | `class C extends P1, P2 { }` | High (duplicate concrete methods) | ❌ No (compiler error) |
 | Java interface multiple-extends | `interface C extends P1, P2 { }` | None (declarations only) | ✅ Yes (valid) |
 | Python class multiple-extends | `class C(P1, P2):` | None (resolved by MRO) | ✅ Not applicable — Python allows it |
-```
-
-
 
 ---
 
