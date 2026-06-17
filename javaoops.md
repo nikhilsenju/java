@@ -4,7 +4,6 @@ Last Updated: 12 Jun, 2026
 
 This document explains common rules and behaviors about classes, file naming, compilation and execution in Java. The explanations follow the numbered points you provided and include concrete examples and common errors you will see if the rules are broken.
 
----
 
 ## 1.1 Class declarations and file-naming rules
 
@@ -24,7 +23,6 @@ Java source files can contain multiple class declarations, but there are strict 
 	- Scenario B — One public class:
 		- If one top-level class is declared `public` (for example `public class B`), the source file name must match the public class name: `B.java`.
 		- If the filename does not match the public class, the compiler will produce an error like:
-
 ```
 error: class B is public, should be declared in a file named B.java
 ```
@@ -59,9 +57,6 @@ public class B { }
 // javac wrongname.java
 // -> error: class B is public, should be declared in a file named B.java
 ```
-
----
-
 ## 1.2 compilation process and generated `.class` files
 
 When you compile a Java source file, the compiler (`javac`) produces output on a per-class basis.
@@ -96,8 +91,6 @@ javac durga.java
 ls *.class
 # -> A.class B.class C.class D.class
 ```
-
----
 
 ## 1.3 execution (`main` method) rules and behavior
 
@@ -154,7 +147,6 @@ Error: Could not find or load main class durga
 	- UnsupportedClassVersionError:
 		- If a `.class` was compiled with a newer JDK than the runtime, the JVM complains with `UnsupportedClassVersionError`.
 
----
 
 ## 1.4 Quick summary checklist
 
@@ -3253,3 +3245,1074 @@ int result = calculate(10);       // Explicitly int
 ---
 
 Summary: Method Overloading Case Study-1 demonstrates how the Java compiler uses automatic type promotion to resolve overloaded method calls. When an exact type match is not found, the compiler widens the argument type through a strict promotion hierarchy (byte/short/char → int → long → float → double). Narrowing (downcasting) is forbidden to prevent data loss. If promotion reaches the top of the hierarchy without finding a match, compilation fails. Understanding this mechanism is critical for designing clear APIs and avoiding unexpected method invocations.
+
+
+## 23 Method Overloading — Case Study-2 (Parent vs Child types)
+
+Last Updated: 17 Jun, 2026
+
+This section analyses a focused case study from Durga Software Solutions about method overloading when the overloaded signatures accept a parent type and its child type (for example `Object` and `String`). The examples show how the Java compiler chooses the most specific applicable method at compile-time and how special cases such as `null` and missing overloads behave.
+
+### 23.1 Core scenario
+
+- Problem statement: You have two overloaded methods with the same name but different parameter types where one parameter type is the parent (supertype) of the other.
+- Example signatures used in the video:
+
+```java
+public void m1(Object o) { System.out.println("Object version"); }
+public void m1(String s) { System.out.println("String version"); }
+```
+
+- Java's compile-time rule: when more than one overloaded method applies, the compiler picks the most specific method. A parameter type that is a subclass (child) of another is considered more specific.
+
+### 23.2 Exact match and specificity (child wins)
+
+- Call example:
+
+```java
+Test t = new Test();
+t.m1("durga");
+```
+
+- Explanation:
+  - The literal `"durga"` is of type `String` (exact match to `m1(String)`).
+  - The compiler prefers the more specific signature `m1(String)` over `m1(Object)` because `String` is a subtype of `Object`.
+  - Output when run:
+
+```
+String version
+```
+
+This is deterministic at compile-time — the compiler performs overload resolution and selects the `String` version.
+
+### 23.3 The special case of null
+
+- Null is special because it is assignable to any reference type. When you call the overloaded method with `null`, multiple overloads may be applicable.
+
+```java
+t.m1(null);
+```
+
+- Resolution rule for `null`:
+  - If several overloaded methods accept reference types and `null` is a valid argument for all of them, the compiler chooses the most specific method (the child type) to maintain precision.
+  - In this example, both `m1(Object)` and `m1(String)` are applicable for `null`, but `m1(String)` is more specific; the compiler selects it.
+
+- Output when run (with both overloads present):
+
+```
+String version
+```
+
+### 23.4 When the child overload is missing
+
+- If you remove the more specific method (the `String` version), the compiler has no specific match to choose from and will resolve to the available parent type overload.
+
+Example: keep only
+
+```java
+public void m1(Object o) { System.out.println("Object version"); }
+```
+
+Then the calls behave as follows:
+  - `t.m1("durga")` → `Object version` (because only the `Object` overload exists)
+  - `t.m1(null)` → `Object version` (only applicable overload)
+
+This demonstrates the fallback behavior: the parent type is used only when no more specific overload exists.
+
+### 23.5 Small, complete example
+
+```java
+// File: Test.java
+class Test {
+    public void m1(Object o) { System.out.println("Object version"); }
+    public void m1(String s) { System.out.println("String version"); }
+
+    public static void main(String[] args) {
+        Test t = new Test();
+        t.m1("durga"); // selects String version
+        t.m1((Object) "durga"); // selects Object version because of cast to Object at compile-time
+        t.m1(null); // selects String version (most specific)
+    }
+}
+```
+
+Note: Overload resolution uses the compile-time type of arguments. Casting an expression to a parent type (for example `(Object) "durga"`) changes the compile-time type and can make the compiler select the parent overload.
+
+### 23.6 Key rules and exam checkpoints
+
+1. Specificity priority: When multiple overloaded methods apply, the method with the more specific parameter type (child) is chosen by the compiler.
+2. null arguments: If `null` is an argument and multiple reference-type overloads match, the compiler selects the most specific overload.
+3. Fallback behavior: If the more specific overload is not present, the compiler falls back to the less specific (parent) overload.
+4. Compile-time vs runtime: Overload resolution is based on compile-time types of arguments. Casting an argument to a parent type can change which overload is chosen.
+
+### 23.7 Typical pitfalls and best practices
+
+- Avoid designing APIs where closely related types (parent/child) are both overload targets if it can confuse callers — prefer distinct method names when semantics differ.
+- When you must provide overloaded methods for parent and child types, document the precedence and behavior, especially for `null`.
+- Use explicit casts when you intentionally want to invoke the parent overload (for example to call a general-purpose implementation): `t.m1((Object) "durga");`
+
+### 23.8 Summary
+
+In method overloading conflicts between parent and child parameter types, the compiler always prefers the most specific applicable method (the child type). `null` follows the same rule: the more specific reference overload is selected. Only if the specific (child) overload is absent does the compiler choose the parent overload. Remember overload resolution uses compile-time types — casting affects which overload is selected.
+
+---
+
+
+## 24 Method Overloading — Case Study-4 (Var-args / Variable Arguments)
+
+Last Updated: 17 Jun, 2026
+
+This section documents the Var-args (variable arguments) behavior in method overloading as explained in Durga Sir's session. Var-args were introduced in Java 1.5 and change overload resolution priority: methods with fixed parameters are considered more specific than var-arg signatures. The var-arg method acts as a flexible fallback similar to the `default` case in a `switch` statement.
+
+### 24.1 Core Var-args Overloading Axiom
+
+- Structural rule: Var-arg methods (`int...`, `String...`, etc.) are considered less specific than methods with fixed, explicit parameters.
+- Resolution driver: During overload resolution the compiler prefers a fixed-argument method if it provides a matching signature. Only when no fixed-argument match is available will the var-arg method be selected.
+
+### 24.2 Example Test class
+
+```java
+class Test {
+    public void m1(int i) { System.out.println("General Method"); }
+    public void m1(int... i) { System.out.println("Var-arg Method"); }
+}
+```
+
+### 24.3 Execution matrix (calls and results)
+
+- `t.m1(10)`
+  - Matches both `m1(int)` and `m1(int...)` but the fixed-arg `m1(int)` has higher priority.
+  - Result: prints `General Method`.
+
+- `t.m1()`
+  - No fixed-arg match exists (requires one `int`), var-arg accepts zero arguments.
+  - Result: prints `Var-arg Method`.
+
+- `t.m1(10, 20)`
+  - No fixed-arg match (only one-int signature), var-arg accepts multiple arguments.
+  - Result: prints `Var-arg Method`.
+
+### 24.4 The "Old is Gold" analogy (precedence)
+
+- The var-arg is analogous to the `default` block in a `switch`: it is used only if no specific case matches.
+- Historical note: fixed-argument methods are conceptually "older" because they existed in Java before var-args (added in Java 1.5). The compiler gives priority to the more specific/older method when both apply.
+
+### 24.5 Practical rules and exam checkpoints
+
+1. Fixed-arg methods always take precedence over var-arg overloads when both are applicable.
+2. Var-arg methods are the low-priority fallback that accepts zero or more arguments.
+3. If you provide both fixed-arg and var-arg overloads, document the intended precedence and behaviour to avoid confusion.
+
+### 24.6 Typical pitfalls and best practices
+
+- Avoid relying on var-args to resolve ambiguous calls when a fixed-argument overload makes the intended behaviour clearer.
+- If behaviour should differ for one argument vs many, provide explicit overloads to make intent obvious.
+- Remember that var-arg arrays create an implicit array at runtime; avoid heavy allocations in performance-critical hot paths.
+
+### 24.7 Small runnable example
+
+```java
+class Test {
+    public void m1(int i) { System.out.println("General Method"); }
+    public void m1(int... i) { System.out.println("Var-arg Method"); }
+
+    public static void main(String[] args) {
+        Test t = new Test();
+        t.m1(10);        // General Method
+        t.m1();          // Var-arg Method
+        t.m1(10, 20);    // Var-arg Method
+    }
+}
+```
+
+### 24.8 Summary
+
+Var-args change method resolution by providing a flexible fallback that accepts zero or more arguments. The compiler always prefers fixed-argument methods when they match; var-args are used only when no specific fixed-argument overload applies. Treat var-args as the "default" case and prefer explicit overloads for clarity and performance when needed.
+
+---
+
+## 25 Method Overloading — Promotion (Primitive Widening)
+
+Last Updated: 17 Jun, 2026
+
+This section covers method overloading behavior when primitive promotion (automatic widening) comes into play. It summarizes the rules, execution matrix, ambiguous scenarios, and examples from Durga Sir's lesson.
+
+### 25.1 The Core Variable Promotion Axiom
+
+- Resolution order for overloads involving primitives:
+  1. Exact match: a method whose parameter types exactly match the argument types wins immediately.
+  2. Promotion (widening): if no exact match exists, the compiler attempts automatic widening conversions (e.g., `int` → `long` → `float` → `double`) to find a candidate.
+
+- Structural rule: a smaller primitive type can be automatically promoted to a larger primitive type when necessary. The compiler will only widen — it never narrows automatically.
+
+### 25.2 Example Test class (signature configuration)
+
+```java
+class Test {
+    public void m1(int i, float f) { System.out.println("Int-Float Version"); }
+    public void m1(float f, int i) { System.out.println("Float-Int Version"); }
+}
+```
+
+### 25.3 Execution matrix (calls, resolution and results)
+
+- `t.m1(10, 10.5f)`
+  - Resolution: Exact match for `(int, float)` → `m1(int, float)` chosen.
+  - Result: prints `Int-Float Version`.
+
+- `t.m1(10.5f, 10)`
+  - Resolution: Exact match for `(float, int)` → `m1(float, int)` chosen.
+  - Result: prints `Float-Int Version`.
+
+- `t.m1(10, 10)`
+  - Analysis: Both overloads are applicable by promotion:
+    - Option A: use `m1(int, float)` by promoting second `int` → `float`.
+    - Option B: use `m1(float, int)` by promoting first `int` → `float`.
+  - Result: Compiler cannot decide (both candidates are equally specific) → **Compile-time error: reference to m1 is ambiguous**.
+
+- `t.m1(10.5f, 10.5f)`
+  - Analysis: Neither overload matches `(float, float)` exactly. Promotion cannot convert a `float` to `int` (narrowing), so no candidate exists.
+  - Result: **Compile-time error: no suitable method found**.
+
+### 25.4 Key scenarios and exam checkpoints
+
+1. Exact match always wins — the compiler picks it immediately.
+2. If promotion is required, the compiler applies widening rules stepwise to search for a match.
+3. Ambiguity arises when two different overloads can be satisfied by promoting different arguments and neither is more specific; the compiler reports an ambiguous reference error.
+4. No-match errors occur when promotion cannot produce the required parameter types (for example needing a `float` where only `int` exists and the argument is `float`).
+
+### 25.5 Summary reference matrix
+
+| Execution Call | Resolution Driver | Outcome |
+|---|---|---|
+| `t.m1(10, 10.5f)` | Exact match `(int, float)` | Success — `Int-Float Version` |
+| `t.m1(10.5f, 10)` | Exact match `(float, int)` | Success — `Float-Int Version` |
+| `t.m1(10, 10)` | Multiple promotion paths | Compile-time Error — Ambiguous |
+| `t.m1(10.5f, 10.5f)` | No widening path to required sig | Compile-time Error — No suitable method |
+
+---
+---
+
+
+## 26 Method Overloading — Reference Types (Object Reference Polymorphism)
+
+Last Updated: 17 Jun, 2026
+
+This section explains how method overloading is resolved when arguments are reference types (object types). The compiler uses the **reference type** (the declared type of the variable) for overload resolution — not the runtime object type. This behaviour is a central piece of static/compile-time polymorphism.
+
+### 26.1 The Core Variable Polymorphism Axiom
+
+- Resolution principle: Overloaded method selection is performed at compile-time using the compile-time (declared) types of the arguments.
+- Structural rule: If two overloads accept a parent type and a child type, the compiler prefers the child type when the compile-time argument type is that child. If the compile-time type is the parent, the parent overload is selected even if the runtime object is a child instance.
+- Resolution driver: Overloading uses static (early) binding based on reference types — runtime object types do not affect which overloaded method is chosen.
+
+### 26.2 Example Test class (reference-type configuration)
+
+```java
+class Animal { }
+class Monkey extends Animal { }
+
+class Test {
+    public void m1(Animal a) { System.out.println("Animal version"); }
+    public void m1(Monkey m) { System.out.println("Monkey version"); }
+
+    public static void main(String[] args) {
+        Test t = new Test();
+
+        Animal a = new Animal();
+        t.m1(a); // Animal version
+
+        Monkey m = new Monkey();
+        t.m1(m); // Monkey version
+
+        Animal a1 = new Monkey();
+        t.m1(a1); // Animal version (reference type is Animal)
+    }
+}
+```
+
+### 26.3 Execution matrix (calls, resolution and results)
+
+- `Animal a = new Animal(); t.m1(a);`
+  - Resolution: compile-time type `Animal` matches `m1(Animal)` → `Animal version`.
+
+- `Monkey m = new Monkey(); t.m1(m);`
+  - Resolution: compile-time type `Monkey` matches `m1(Monkey)` → `Monkey version`.
+
+- `Animal a1 = new Monkey(); t.m1(a1);`
+  - Resolution: compile-time type is `Animal` (though runtime object is `Monkey`); compiler selects `m1(Animal)` → `Animal version`.
+
+### 26.4 Key scenarios and exam checkpoints
+
+1. Reference vs object: Overloading is determined by the reference (declared) type, not the runtime object type. A parent-typed reference holding a child object still selects the parent overload.
+2. Exact match precedence: If a compile-time argument type exactly matches an overload, it is selected.
+3. Specificity among reference types: If overloads accept parent and child types and the compile-time type is the child, the child overload is preferred because it is more specific.
+4. Early binding: Overloading is static polymorphism — decisions are made during compilation and written into the bytecode.
+
+### 26.5 Practical tips and pitfalls
+
+- Beware of surprises when you mix reference declarations and object instantiation: `Animal a = new Monkey();` will not dispatch to `m1(Monkey)` if you're calling an overloaded method — it will call `m1(Animal)`.
+- If you need runtime (dynamic) behavior based on actual object type, use overriding rather than overloading: define `m1(Animal)` and override it in subclasses.
+
+### 26.6 Summary
+
+Method overloading with object reference types is resolved at compile-time using the declared types of arguments. The compiler gives priority to the most specific applicable overload (child over parent) based on reference types. The runtime object type does not affect overload selection — use overriding for dynamic dispatch.
+
+---
+
+## 28 Method Overriding — Runtime Polymorphism (Dynamic Binding)
+
+Last Updated: 17 Jun, 2026
+
+This section explains Method Overriding — the mechanism that enables runtime polymorphism in Java. Overriding lets a subclass provide a specific implementation for a method already defined in its superclass. The JVM resolves overridden methods at runtime based on the actual object's type.
+
+### 28.1 The Core Variable Polymorphism Axiom
+
+- Resolution principle: Overriding uses dynamic (late) binding. The JVM dispatches method calls to the overriding implementation present in the runtime object (heap), regardless of the declared reference type.
+- Structural rule: A subclass may override a non-final, non-private instance method of its superclass. The overriding method must have the same signature and not reduce visibility.
+- Resolution driver: At runtime, the JVM examines the actual object's class and invokes the most specific override available along the inheritance chain.
+
+### 28.2 Example classes (Parent P and Child C)
+
+```java
+class P {
+    public void marry() { System.out.println("Parent Method"); }
+}
+
+class C extends P {
+    @Override
+    public void marry() { System.out.println("Child Method"); }
+}
+
+public class Test {
+    public static void main(String[] args) {
+        P p = new P();    p.marry();   // Parent Method
+        C c = new C();    c.marry();   // Child Method
+        P p1 = new C();   p1.marry();  // Child Method (runtime polymorphism)
+    }
+}
+```
+
+### 28.3 Execution matrix (calls, runtime resolution)
+
+- `P p = new P(); p.marry();`
+  - Resolution: Reference P, object P → calls `P.marry()` → `Parent Method`.
+
+- `C c = new C(); c.marry();`
+  - Resolution: Reference C, object C → calls `C.marry()` → `Child Method`.
+
+- `P p1 = new C(); p1.marry();`
+  - Resolution: Reference P, object C → compiler verifies `P` has `marry()`; at runtime JVM calls `C.marry()` → `Child Method`.
+
+### 28.4 Key rules and exam checkpoints
+
+1. Dynamic binding: Overriding is resolved at runtime; the JVM selects the method implementation from the actual object's class.
+2. Signature and visibility: The overriding method must have the same signature and cannot reduce visibility (for example, `public` in the parent cannot be made `protected` in the child).
+3. final and static methods: `final` methods cannot be overridden; `static` methods are not overridden but hidden — they are resolved by reference type at compile-time.
+4. Abstract methods: An abstract method in a superclass forces concrete subclasses to provide an implementation (or be declared abstract themselves).
+
+### 28.5 Practical tips and pitfalls
+
+- Use overriding when runtime behavior must vary by actual object type. Use overloading when you need compile-time selection of methods by parameter types.
+- Be careful with `static` methods and constructors — they are not subject to overriding semantics.
+
+### 28.6 Summary
+
+Method overriding enables runtime polymorphism: the JVM dispatches calls to the overriding method in the actual object's class. This is the foundation for dynamic behaviour in Java and is distinct from compile-time overloading.
+
+---
+### 28.7 Method Overriding — Strict Rules and Method Signature
+
+- Core axiom: Overriding is strict — the child method must have the same name and parameter list as the parent method. In other words the method signature (method name + argument types in order) must match exactly. If any part of the signature differs, the child method is treated as a new overloaded method, not an override.
+
+- Practical checklist for a valid override:
+  1. Method name identical.
+  2. Parameter types and order identical.
+  3. Return type compatible (see covariant rules below).
+  4. Cannot reduce visibility (e.g., a `public` parent method cannot be made `protected` in child).
+  5. Must not throw new checked exceptions that are broader than the parent's throws-clause (you can throw fewer or narrower checked exceptions, or any unchecked exceptions).
+  6. The parent method must be accessible to the child (i.e., not `private`). `private` methods are not inherited and therefore cannot be overridden.
+
+### 28.8 Return Type Evolution — Pre-Java 1.5 and Covariant Returns
+
+- Historical rule (pre-Java 1.5): The overriding method's return type had to be exactly the same as the parent's return type. Any change — even to a subtype — was a compile-time error.
+
+- Java 1.5+ (Covariant Return Types): Java relaxed the rule and allowed covariant return types for object (reference) types. That means the overriding method may return a subtype of the parent's return type. This makes APIs more flexible and avoids unnecessary casts for callers.
+
+Example (covariant return allowed):
+
+```java
+class Parent {
+    public Object get() { return new Object(); }
+}
+
+class Child extends Parent {
+    @Override
+    public String get() { return "child"; } // String is subtype of Object — allowed in Java 1.5+
+}
+```
+
+Example (pre-Java 1.5 would have errored): the above was illegal before covariant returns were introduced.
+
+### 28.9 What Covariant Return Types Allow (quick matrix)
+
+- Parent returns `Object` → Child may return `Object` or any subtype: `String`, `StringBuffer`, user-defined subclasses, etc.
+- Parent returns `Number` → Child may return `Number` or any subtype: `Integer`, `Float`, `Double`, etc.
+- Parent returns a concrete class `A` → Child may return `A` or any subclass of `A`.
+
+### 28.10 Critical Constraints and Common Compilation Errors
+
+1. Non-covariant changes (illegal): You cannot change the return type to a supertype of the parent's return. Example: parent returns `String`, child attempts to return `Object` — this is incompatible and causes a compile-time error (`incompatible return type`).
+
+```java
+class Parent { public String get() { return ""; } }
+class Child extends Parent { public Object get() { return new Object(); } // ❌ compile error
+}
+```
+
+2. Primitive return types: Covariant returns apply only to reference (object) types. Primitive return types must match exactly. You cannot override a method that returns `int` with one that returns `long` or any other primitive — the return types must be identical.
+
+```java
+class Parent { public int get() { return 1; } }
+class Child extends Parent { public long get() { return 2L; } // ❌ compile error
+}
+```
+
+3. Visibility and final: The overriding method cannot reduce visibility (e.g., `public` → `protected`) and `final` methods in the parent cannot be overridden.
+
+4. Checked exceptions: The overriding method cannot declare broader checked exceptions than the parent. It may declare fewer or narrower checked exceptions, or any unchecked exceptions.
+
+### 28.11 Examples — Legal and Illegal
+
+Legal covariant example:
+
+```java
+class A { public Number value() { return 10; } }
+class B extends A { @Override public Integer value() { return 10; } }
+```
+
+Illegal (non-covariant) example:
+
+```java
+class A { public String name() { return "x"; } }
+class B extends A { @Override public Object name() { return new Object(); } // ❌ incompatible return type
+}
+```
+
+Illegal (primitive change) example:
+
+```java
+class A { public int count() { return 1; } }
+class B extends A { @Override public long count() { return 1L; } // ❌ compile error
+}
+```
+
+### 28.12 Summary reference matrix
+
+| Aspect | Pre-Java 1.5 | Java 1.5+ (Covariant) |
+|---|---:|---:|
+| Method signature | Must match exactly | Must match exactly |
+| Return type | Must be identical | May be covariant for reference types |
+| Primitive returns | Must be identical | Must be identical |
+| Visibility | Cannot be reduced | Cannot be reduced |
+| Checked exceptions | Cannot be broader | Cannot be broader |
+
+---
+
+
+## 29 Method Overriding — Modifiers (private, final, abstract, ...)
+
+Last Updated: 17 Jun, 2026
+
+This section explains how method modifiers affect the ability to override methods in Java. Durga Sir's session highlights that certain modifiers prevent overriding while others do not change the overriding semantics.
+
+### 29.1 The Core Modifiers Axiom
+
+- Summary principle: Not every method declared in a superclass is a candidate for overriding. Modifiers control inheritance and override visibility.
+
+- Quick rules:
+  - `private` methods are not inherited and therefore cannot be overridden.
+  - `final` methods cannot be overridden — attempts to do so cause a compile-time error.
+  - `abstract` methods must be overridden by concrete subclasses (unless the subclass is abstract itself).
+  - `synchronized`, `native`, and `strictfp` are behavioural modifiers and do not by themselves prevent overriding; normal overriding rules apply.
+
+### 29.2 Modifier matrix (can this be overridden?)
+
+| Modifier | Is Overriding Possible? | Notes |
+|---|---:|---|
+| private | No | Not inherited by child; a child method with same signature is a new method, not an override.
+| final | No | Compiler error if child attempts to override — method implementation locked.
+| abstract | Yes (must be) | Concrete subclasses must implement the abstract method (or be declared abstract themselves).
+| synchronized | Yes | Behavioural modifier; overriding allowed.
+| native | Yes | Overriding allowed; native indicates JVM/native implementation.
+| strictfp | Yes | Floating-point semantics modifier; overriding allowed.
+
+### 29.3 Private methods — not overridden
+
+```java
+class Parent {
+  private void secret() { System.out.println("parent secret"); }
+}
+
+class Child extends Parent {
+  // This is NOT overriding. It's a new method local to Child.
+  private void secret() { System.out.println("child secret"); }
+}
+
+// Caller code cannot use polymorphism here because Parent.secret() is invisible to Child.
+```
+
+Key point: private methods are invisible to subclasses — they are not part of the inheritance contract.
+
+### 29.4 Final methods — locked implementations
+
+```java
+class Parent {
+  public final void cannotChange() { System.out.println("fixed"); }
+}
+
+class Child extends Parent {
+  // ❌ compile-time error: cannot override final method
+  public void cannotChange() { System.out.println("attempt"); }
+}
+```
+
+The compiler rejects attempts to override final methods with an error like: `cannot override final method`.
+
+### 29.5 Abstract methods — must override (or remain abstract)
+
+```java
+abstract class Parent {
+  public abstract void doWork();
+}
+
+class Child extends Parent {
+  @Override
+  public void doWork() { System.out.println("work done"); }
+}
+```
+
+If `Child` does not provide an implementation, `Child` must be declared `abstract` as well.
+
+### 29.6 Behavioural modifiers that don't block overriding
+
+- `synchronized`, `native`, and `strictfp` are not access modifiers — they influence runtime behaviour or indicate native linkage, but do not by themselves prevent overriding. The usual rules for signature, visibility, and exceptions still apply.
+
+Example: Overriding a synchronized method is allowed — the override may also be synchronized or not, but consider thread-safety implications.
+
+### 29.7 Summary reference matrix
+
+| Modifier | Overrides allowed? | Typical compiler/runtime message |
+|---|---:|---|
+| private | No | Not inherited — treated as a new method in child |
+| final | No | `cannot override final method` (compile-time error) |
+| abstract | Yes (must) | `Class must be declared abstract or implement abstract method` if not implemented |
+| synchronized/native/strictfp | Yes | Normal overriding rules apply |
+
+---
+
+## 30 Method Overriding — Access Modifier Rules (scope and privileges)
+
+Last Updated: 17 Jun, 2026
+
+This section describes how access modifiers affect method overriding. The central rule is simple: an overriding method in the child class cannot use a more restrictive access modifier than the overridden method in the parent.
+
+### 30.1 The Core Access Modifier Axiom
+
+- Structural rule: Access modifiers follow the ordering `private < default < protected < public` (increasing accessibility). When overriding, the child method must maintain or increase accessibility; it cannot decrease it.
+- Resolution driver: The compiler checks the declared access level on both methods. If the child method attempts to reduce accessibility, the compiler issues an error `attempting to assign weaker access privileges`.
+
+### 30.2 Allowed mappings (parent -> possible child modifiers)
+
+| Parent method modifier | Allowed child method modifiers |
+|---|---|
+| public | public |
+| protected | protected, public |
+| default (package-private) | default, protected, public |
+| private | Not applicable (private methods are not inherited; cannot be overridden) |
+
+### 30.3 Examples (legal and illegal)
+
+Legal (maintain or increase accessibility):
+
+```java
+class Parent {
+  protected void doIt() { }
+}
+
+class Child extends Parent {
+  @Override
+  public void doIt() { } // allowed: protected -> public (increased access)
+}
+```
+
+Illegal (reducing accessibility):
+
+```java
+class Parent { public void serve() { } }
+class Child extends Parent {
+  // ❌ compile-time error: attempting to assign weaker access privileges
+  protected void serve() { }
+}
+```
+
+Notes:
+- `private` methods are not part of the inheritance contract and therefore cannot be overridden; declaring the same signature in child defines a new method local to child.
+- Package-private (default) in the parent can be overridden by `protected` or `public` in the child only if the child is in the same package or visibility increases (but be mindful of package boundaries).
+
+### 30.4 Summary reference matrix
+
+| Parent modifier | Child override allowed? | Comment |
+|---|---:|---|
+| public | Yes (must be public) | Child cannot reduce to protected/default/private |
+| protected | Yes (protected or public) | Child may widen to public |
+| default | Yes (default/protected/public) | Child may widen, but package boundaries matter |
+| private | No | Private methods are not inherited; not overridable |
+
+---
+
+## 31 Method Overriding — Rules for throws (Checked vs Unchecked Exceptions)
+
+Last Updated: 17 Jun, 2026
+
+This section explains how the `throws` clause interacts with method overriding. The key principle is that checked exceptions are part of the compile-time contract and the overriding method in a subclass cannot declare broader checked exceptions than the overridden method in the parent.
+
+### 31.1 The Core Exception Axiom
+
+- Checked vs unchecked:
+  - Checked exceptions (any subclass of `Exception` except `RuntimeException` and its subclasses) are subject to compile-time checks.
+  - Unchecked exceptions (`RuntimeException` and `Error` subclasses) are not checked by the compiler.
+
+- Structural rule: If the overriding (child) method declares checked exceptions, each checked exception must be the same as or a subtype of an exception declared in the parent's `throws` clause. The overriding method may declare fewer exceptions or narrower (subtype) checked exceptions.
+
+### 31.2 Comprehensive exception matrix
+
+| Scenario | Rule | Valid/Invalid |
+|---|---|---:|
+| Child throws checked E; parent throws same E or supertype | Allowed | Valid |
+| Child throws checked E; parent does not declare E or its supertype | Not allowed — compile-time error | Invalid |
+| Child throws unchecked (RuntimeException/Error) | Allowed (no restrictions) | Valid |
+
+### 31.3 Common scenarios and examples
+
+1) Parent declares no checked exceptions — child cannot add checked exceptions
+
+```java
+class Parent {
+  public void process() { }
+}
+
+class Child extends Parent {
+  // ❌ compile-time error: cannot add checked exception
+  public void process() throws IOException { }
+}
+```
+
+2) Parent declares checked exception — child may declare same or more specific checked exception
+
+```java
+class Parent {
+  public void read() throws Exception { }
+}
+
+class Child extends Parent {
+  @Override
+  public void read() throws IOException { } // allowed: IOException is subclass of Exception
+}
+```
+
+3) Child throws unchecked exceptions freely
+
+```java
+class Parent { public void run() { } }
+class Child extends Parent { public void run() throws RuntimeException { throw new RuntimeException(); } }
+```
+
+### 31.4 Covariant exceptions (note)
+
+- Java does not support covariant exceptions in the same way as covariant return types. The overriding method's declared checked exceptions must be subtypes of the parent's declared checked exceptions; they cannot be unrelated or broader.
+
+### 31.5 Compiler enforcement and rationale
+
+- The compiler enforces the `same-or-subtype` rule for checked exceptions to preserve the contract visible to callers. Callers that catch the parent's declared exceptions remain valid when a subclass instance is used.
+
+### 31.6 Summary reference matrix
+
+| Child throws | Parent must declare | Outcome |
+|---|---|---:|
+| Checked exception E | E or a supertype of E | Valid |
+| Checked exception E | Not declared or unrelated | Compile-time error |
+| Unchecked exception | No restrictions | Valid |
+
+---
+## 32 Method Overriding with Var-arg Methods (Varargs)
+
+Last Updated: 17 Jun, 2026
+
+This section explains a common pitfall and the correct rules when overriding methods that use Java's var-arg (ellipsis) parameter syntax (for example `int... i`). The key idea: var-arg parameter types are part of the method signature and a non-var-arg method with the same simple parameter does not override a var-arg method — it overloads it.
+
+### 32.1 The Var-arg Overriding Axiom
+
+- The Structural Rule: You cannot override a var-arg method with a normal (non-var-arg) method. The compiler treats `int...` and `int` as different parameter types for the purpose of method signatures.
+- The Resolution Driver: If a child class defines a method with the same name but a different parameter type (for example `int` instead of `int...`), the compiler resolves this as method overloading, not overriding. That means method selection is performed at compile time based on the reference type.
+
+### 32.2 Comprehensive execution matrix (illustrative)
+
+Consider these class definitions:
+
+Parent class P: defines `public void m1(int... i)` (var-arg).
+Child class C: defines `public void m1(int i)` (normal single-arg).
+
+Because `int...` and `int` are different parameter types, these two methods overload rather than override. Method resolution is therefore determined by the compile-time type of the reference, not the runtime object.
+
+Execution examples and outcomes:
+
+| Reference & call | Resolution (who decides) | Outcome (which method runs) |
+|---|---|---:|
+| `P p = new P(); p.m1(10);` | Compiler (reference type `P`) | Parent's var-arg method ("Parent Method") |
+| `C c = new C(); c.m1(10);` | Compiler (reference type `C`) | Child's normal method ("Child Method") |
+| `P p1 = new C(); p1.m1(10);` | Compiler (reference type `P`) | Parent's var-arg method ("Parent Method") |
+
+> Note: Because overloading is resolved at compile time, `p1.m1(10)` where `p1` has compile-time type `P` will call `P`'s `m1(int...)` even if the runtime object is `C`.
+
+### 32.3 How to properly override var-arg methods
+
+- The Structural Rule: To actually override a var-arg method, the child method must declare a var-arg parameter with the identical signature (for example `public void m1(int... i)`). Only then does Java apply dynamic (runtime) dispatch to choose the implementation based on the runtime type of the object.
+- The Resolution Driver: When both parent and child methods are var-arg with the same signature, the JVM will use the runtime object to select the overriding method (dynamic dispatch).
+
+Example (true overriding):
+
+```java
+class P {
+  public void m1(int... i) {
+    System.out.println("Parent Method");
+  }
+}
+
+class C extends P {
+  @Override
+  public void m1(int... i) {
+    System.out.println("Child Method");
+  }
+}
+
+// Behavior:
+// P p = new C(); p.m1(10); // prints: Child Method (runtime dispatch)
+```
+
+### 32.4 Quick summary reference matrix
+
+| Feature | Scenario | Who decides | Result |
+|---|---|---:|---:|
+| Overloading | Var-arg in parent + Normal in child | Compiler (reference type) | Overloading — no runtime override |
+| Overriding | Var-arg in parent + Var-arg in child (same signature) | JVM (runtime object) | Overriding — dynamic dispatch |
+
+### 32.5 Practical advice and edge cases
+
+- If you intend polymorphic behavior, keep the parameter lists identical (including var-arg vs non-var-arg) so the method actually overrides.
+- Watch out for ambiguous calls when multiple overloads are available; the compiler picks the most specific applicable method based on compile-time types and available conversions.
+- Var-arg methods are translated to an array parameter at the bytecode level (for example `int...` becomes `int[]`), but the Java language distinguishes `int...` from `int` for method signatures.
+
+---
+## 33 Overriding with respect to Variables — Variable Hiding / Shadowing
+
+Last Updated: 17 Jun, 2026
+
+Durga Sir clarifies a frequent misconception: method overriding applies only to methods, not to variables. When a subclass declares a variable with the same name as a variable in its superclass, this is variable hiding (shadowing), not overriding.
+
+### 33.1 The Core Variable Hiding / Shadowing Axiom
+
+- The Structural Rule: Variables cannot be overridden. Only methods participate in runtime overriding (dynamic dispatch).
+- The Resolution Driver: Variable access is resolved at compile time based on the reference type (static binding). The actual runtime object does not affect which variable is accessed.
+
+### 33.2 Comprehensive execution matrix (illustrative)
+
+Consider a variety of combinations of parent and child variables (instance/static). The result is always determined by the reference type used at the access site.
+
+| Parent Variable | Child Variable | Result when using Parent reference | Result when using Child reference | Result when using Parent ref to Child object |
+|---|---:|---:|---:|---:|
+| instance | instance | Parent value | Child value | Parent value (because reference is Parent) |
+| static | non-static | Parent value | Child value | Parent value |
+| non-static | static | Parent value | Child value | Parent value |
+| static | static | Parent value | Child value | Parent value |
+
+> As the whiteboard trace shows, variable resolution is compile-time only and depends on the declared type of the reference, not the runtime object.
+
+### 33.3 Examples
+
+```java
+class P {
+  public int x = 100;
+}
+
+class C extends P {
+  public int x = 200; // hides P.x
+}
+
+public class Test {
+  public static void main(String[] args) {
+    P p = new P();
+    C c = new C();
+    P p1 = new C();
+
+    System.out.println(p.x);  // prints 100 (P.x)
+    System.out.println(c.x);  // prints 200 (C.x)
+    System.out.println(p1.x); // prints 100 (resolved by reference type P)
+  }
+}
+```
+
+### 33.4 Key takeaway: Overriding vs Variable Hiding
+
+- Overriding: Applies only to methods. Resolved at runtime using dynamic dispatch and the runtime object.
+- Variable Hiding (Shadowing): Applies to fields/variables only. Resolved at compile time using the reference type.
+
+To achieve polymorphic behavior for state, expose it through methods (getters/setters) and override those methods in subclasses. Directly "overriding" fields will not give you polymorphism.
+
+---
+
+## 34 Method Overloading vs Method Overriding — Comparison
+
+Last Updated: 17 Jun, 2026
+
+This section summarizes Durga Sir's comparison between method overloading and method overriding and provides a compact reference matrix and observations for exam/interview preparation.
+
+### 34.1 The Core Comparison Axiom
+
+- Overloading is about compile-time flexibility (multiple methods with same name but different parameter lists). Method selection is performed by the compiler using the reference type and available conversions.
+- Overriding is about runtime polymorphism (a subclass provides a new implementation for a parent method with the same signature). Method selection is performed at runtime by the JVM based on the actual object.
+
+### 34.2 Comprehensive comparison matrix
+
+| Property | Overloading | Overriding |
+|---|---|---:|
+| Method names | Must be same | Must be same |
+| Argument types | Must be different (in some way — count/order/types) | Must be same (including order) |
+| Private/Final/Static methods | Can be overloaded | Cannot be overridden |
+| Return types | No restrictions (any return type allowed) | Must be same or covariant (since Java 1.5) |
+| Throws clause | No restrictions | Child must throw same or narrower checked exceptions |
+| Method resolution | Compiler (based on reference type) — early binding | JVM (based on runtime object) — late binding |
+| Other names | Static polymorphism / Early binding | Dynamic polymorphism / Late binding |
+
+### 34.3 Key observations
+
+- Overloading is syntactically simpler: only the parameter list must differ; return type and exceptions don't constrain overloads.
+- Overriding enforces stricter compatibility rules (signature, return types, checked exceptions) because it changes the runtime contract visible to callers.
+- Use overloading for convenient API design (same operation with different inputs). Use overriding for polymorphic behavior and runtime specialization.
+
+Would you like runnable examples added to the repository demonstrating these differences (overload vs override) and their outputs? I can create small Java files and run them to show the exact behavior.
+
+## 35 Polymorphism Summary
+
+Last Updated: 17 Jun, 2026
+
+This final summary ties together the previous sections on overloading, overriding, method hiding, and variable hiding into a concise polymorphism reference inspired by Durga Sir's session.
+
+### 35.1 The Core Polymorphism Axiom
+
+- Polymorphism = "many forms" (poly = many, morph = forms).
+- In programming, polymorphism means one name (method) can represent multiple behaviors depending on context.
+
+### 35.2 Comprehensive polymorphism matrix
+
+Durga Sir categorizes polymorphism by when method resolution occurs:
+
+| Type | Other names | Binding time | Resolution driver | Examples |
+|---|---|---:|---|---:|
+| Static polymorphism | Early binding / Compile-time | Compile-time | Reference type | Method overloading, method hiding (static methods) |
+| Dynamic polymorphism | Late binding / Runtime | Runtime | Runtime object | Method overriding |
+
+### 35.3 Key scenarios and real-world analogy
+
+- Real-world metaphor: the same person behaves differently at home, with friends, or in a different town — the object (person) shows different behavior (methods) based on context (reference vs runtime environment).
+- Method overloading and method hiding are compile-time forms of polymorphism: the compiler decides which method to call using the reference type and available conversions.
+- Method overriding is runtime polymorphism: the JVM decides which implementation to call using the actual object's type on the heap.
+
+### 35.4 Quick reference summary
+
+- Method Overloading: Same method name, different parameter lists. Resolved at compile time by the compiler (reference type).
+- Method Hiding (static methods): Hidden, not overridden. Resolved at compile time by the compiler.
+- Method Overriding: Same method signature in superclass and subclass. Resolved at runtime by the JVM (runtime object).
+
+---
+
+## 36 The Three Pillars of OOPS (Java)
+
+Last Updated: 17 Jun, 2026
+
+This section captures Durga Sir's concise framing of the three fundamental pillars of Object-Oriented Programming in Java: Encapsulation, Inheritance, and Polymorphism.
+
+### 36.1 The Core Pillars Axiom
+
+- Encapsulation (Security): Combines data hiding and abstraction. Protects internal state and exposes only intended interfaces.
+- Inheritance (Reusability): Allows a child class to inherit properties and behaviors from a parent class, reducing duplication and encouraging reuse.
+- Polymorphism (Flexibility): Enables one name to represent many forms — via overloading (compile-time) and overriding (runtime).
+
+### 36.2 Pillars matrix
+
+| Pillar | Primary benefit | Core mechanism |
+|---|---|---:|
+| Encapsulation | Security | Data hiding, access modifiers, abstraction |
+| Inheritance | Reusability | Extending classes and reusing behavior |
+| Polymorphism | Flexibility | Overloading, overriding, dynamic binding |
+
+### 36.3 Key observations
+
+- Polymorphism is widely used in Java frameworks — e.g., the Collections Framework: a `List` reference can hold `ArrayList`, `LinkedList`, `Vector`, or `Stack`, allowing generic code to work with different implementations.
+- The three pillars work together: encapsulation secures state, inheritance shares behavior, polymorphism lets code operate on abstractions rather than concrete types.
+
+Would you like this section converted into a printable cheat-sheet or slides?
+
+## 37 Object Type Casting — The 3 Mantras
+
+Last Updated: 17 Jun, 2026
+
+Durga Sir presents three essential "mantras" (rules) the Java compiler uses to validate object casts. Violating these rules leads to compile-time errors; passing them still allows a runtime ClassCastException if the heap object does not match the cast.
+
+### 37.1 The Core Object Type Casting Axiom (3 Mantras)
+
+For a cast statement of the form:
+
+  A b = (C) d;
+
+where A is the reference type of `b`, C is the type being cast to, and `d` is the object reference being cast, the compiler enforces:
+
+1) The type of `d` and `C` must have some relationship (either parent-child or child-parent).
+2) `C` must be the same as or a child type of the compile-time type of `d`.
+3) `C` must be the same as or a child type of `A`.
+
+If any of these checks fail at compile time, the compiler issues an error.
+
+### 37.2 The Comprehensive Checking Matrix
+
+This is enforced as two main compile-time checks on the statement `A b = (C) d;`:
+
+| Check | Requirement | Error if failed |
+|---|---|---:|
+| Check 1 | Is there a relationship between the compile-time type of `d` and `C`? | Compile-time error if no relationship |
+| Check 2 | Is `C` the same as or a subtype of `A`? | Compile-time error if not |
+
+### 37.3 Runtime behavior and ClassCastException
+
+- Compile-time: The compiler only verifies the relationships between reference types (A, C, and the compile-time type of `d`). If checks pass, the code compiles.
+- Runtime: The JVM checks the actual object on the heap. If the heap object is not an instance of `C` (or a subclass), the JVM throws `ClassCastException`.
+
+Example:
+
+```java
+Object o = new String("durga");
+StringBuffer sb = (StringBuffer) o; // Compile-time: allowed (reference relationships pass)
+                   // Runtime: ClassCastException (o is a String, not a StringBuffer)
+```
+
+### 37.4 Summary reference matrix
+
+| Feature | Behavior |
+|---|---|
+| Compile-time check | Ensures the cast could be valid based on reference types (the 3 mantras) |
+| Runtime check | Ensures the actual heap object matches the cast target; throws `ClassCastException` if not |
+| Compile error | Occurs when the three mantras are violated at compile time |
+
+Would you like examples that demonstrate both compile-time failures and runtime ClassCastException scenarios? I can add small Java files and run them to show exact outputs.
+
+
+## 38 Case Study: Object Type Casting (Applying the 3 Mantras)
+
+Last Updated: 17 Jun, 2026
+
+This case study applies the three mantras to a sample class hierarchy to demonstrate which casts are permitted at compile time and which fail at runtime.
+
+### 38.1 Example hierarchy and setup
+
+Consider a hierarchy where `Base1` and `Base2` both extend `Object`. `Der1` and `Der2` extend `Base1`. `Der3` and `Der4` extend `Base2`.
+
+Now suppose:
+
+  Base2 b = new Der4();
+
+We evaluate several casts and explain the result.
+
+### 38.2 Case study matrix
+
+| Code snippet | Result | Reasoning |
+|---|---|---:|
+| `Der4 d = (Der4) b;` | Valid | `Der4` is a child of `Base2` (the compile-time type of `b`); all mantras satisfied. |
+| `Base1 b1 = (Base1) b;` | Compile-time error | `Base1` and `Base2` are unrelated sibling types; Check 1 fails. |
+| `Base2 b2 = (Base2) b;` | Valid | Identity cast to same type is allowed. |
+| `Object o = (Der3) b;` | Runtime error (ClassCastException) | Compiler allows the cast because `Der3` is a descendant of `Base2` (so reference checks pass), but at runtime the actual object is `Der4`, not `Der3`. |
+| `Base2 b3 = (Base1) b;` | Compile-time error | `Base1` and `Base2` are siblings; casting between them is illegal. |
+
+### 38.3 Key takeaway: Compiler vs JVM
+
+- Compile-time (compiler): Only reference types are checked using the 3 mantras. The compiler prevents impossible casts such as between sibling types that have no parent-child relationship.
+- Runtime (JVM): The JVM validates the actual object on the heap. If the object is incompatible with the cast target, a `ClassCastException` is thrown.
+
+### 38.4 Summary reference matrix
+
+| Rule | Role |
+|---|---|
+| Rule 1 (Compiler) | Ensure types have a parent-child relationship |
+| Rule 2 (Compiler) | Ensure cast target is same or subtype of target reference |
+| Rule 3 (Runtime) | Ensure actual heap object matches cast target or its subtype |
+
+---
+
+## 39 Internal Mechanics of Object Type Casting
+
+Last Updated: 17 Jun, 2026
+
+Durga Sir demonstrates that object type casting does not create new objects on the heap; it only changes the type of the reference variable that points to an existing object.
+
+### 39.1 The Core Casting Axiom
+
+- The Structural Rule: Casting changes the reference variable's type, not the actual object's type on the heap.
+- The Resolution Driver: Because the heap object remains the same, multiple reference variables that result from casting will all point to the identical memory address (heap location). No new objects are created by casting.
+
+### 39.2 Execution matrix (illustrative)
+
+| Action | Heap state | Reference state |
+|---|---|---|
+| `String s = new String("durga");` | 1 Object created (`"durga"`) | `s` references that Object |
+| `Object o = (Object) s;` | No new object created | `o` also references the same Object |
+| `Integer I = new Integer(10);` | 1 Object created (`10`) | `I` references that Object |
+| `Number n = (Number) I;` | No new object created | `n` also references the same Object |
+| `Object o = (Object) n;` | No new object created | `o` also references the same Object |
+
+### 39.3 Key takeaway: Identity and `==`
+
+- Because all variables created by casting point to the same heap location, comparing those references with `==` returns `true`.
+- Use `==` for identity checks (same object), and `.equals()` for logical equality as appropriate.
+
+Would you like me to add a short Java program that prints `==` comparisons and demonstrates there is no new object creation due to casting? I can add and run it and paste the outputs.
+
+### 39 Casting Scenarios: Overriding, Method Hiding and Variable Hiding
+
+Last Updated: 17 Jun, 2026
+
+This subsection focuses on how casting interacts with three different resolution mechanisms: method overriding, method hiding (static methods), and variable hiding (fields). The key principle is that casting changes only the reference type — the heap object remains unchanged — and resolution depends on whether binding is dynamic (runtime) or static (compile-time).
+
+1. The Core Casting Axiom
+
+- Casting modifies the reference variable's type; the runtime object remains the same. Which member is selected depends on the member's binding semantics:
+  - Overriding (instance methods): resolved by the JVM using the runtime object.
+  - Method hiding (static methods): resolved by the compiler using the reference type.
+  - Variable resolution (fields): resolved by the compiler using the reference type.
+
+2. Comprehensive scenarios matrix
+
+| Scenario | Resolution Driver | Outcome Logic |
+|---|---|---:|
+| Method Overriding | JVM (Runtime Object) | Regardless of the reference type, the child (runtime) method executes. |
+| Method Hiding (Static) | Compiler (Reference Type) | The static method declared in the reference type's class executes. Casting the reference affects which static method the compiler chooses. |
+| Variable Hiding (Fields) | Compiler (Reference Type) | Field access is determined by the reference type at compile time; casting the reference changes which field is read. |
+
+3. Key Takeaway: Practice Examples
+
+- Overriding example: Given `class A { void m() {} } class B extends A { void m() {} } class C extends B { void m() {} }` and `C c = new C(); A ref = (A) c; ref.m();` — the `C` implementation runs because the runtime object is `C`.
+- Method hiding (static) example: With `static void m()` in each class, `A ref = (A) c; ref.m();` calls `A.m()` because the compiler binds static calls to the reference type.
+- Variable hiding example: If each class defines `int x`, then `A ref = (A) c; System.out.println(ref.x);` prints `A`'s `x` because field access is based on the reference type.
+
+Would you like runnable examples added to the repo that demonstrate these three scenarios (overriding vs static hiding vs field hiding)? I can add Java source files and run them to show exact outputs and compiler/runtime behavior.
+
+
+
