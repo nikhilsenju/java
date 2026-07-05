@@ -22,10 +22,7 @@ Java source files can contain multiple class declarations, but there are strict 
 
 	- Scenario B — One public class:
 		- If one top-level class is declared `public` (for example `public class B`), the source file name must match the public class name: `B.java`.
-		- If the filename does not match the public class, the compiler will produce an error like:
-```
-error: class B is public, should be declared in a file named B.java
-```
+		- If the filename does not match the public class, the compiler error: class B is public, should be declared in a file named B.java
 
 Example (valid):
 
@@ -60,7 +57,6 @@ public class B { }
 ## 1.2 compilation process and generated `.class` files
 
 When you compile a Java source file, the compiler (`javac`) produces output on a per-class basis.
-
 - Separate `.class` files for each class
 	- For every top-level or nested class defined in the source, the compiler generates one `.class` file containing the bytecode for that class.
 	- If `durga.java` contains `class A`, `class B`, `class C`, and `class D`, then running:
@@ -4256,34 +4252,6 @@ We evaluate several casts and explain the result.
 | Rule 3 (Runtime) | Ensure actual heap object matches cast target or its subtype |
 
 ---
-
-## 39 Internal Mechanics of Object Type Casting
-
-Last Updated: 17 Jun, 2026
-
-Durga Sir demonstrates that object type casting does not create new objects on the heap; it only changes the type of the reference variable that points to an existing object.
-
-### 39.1 The Core Casting Axiom
-
-- The Structural Rule: Casting changes the reference variable's type, not the actual object's type on the heap.
-- The Resolution Driver: Because the heap object remains the same, multiple reference variables that result from casting will all point to the identical memory address (heap location). No new objects are created by casting.
-
-### 39.2 Execution matrix (illustrative)
-
-| Action | Heap state | Reference state |
-|---|---|---|
-| `String s = new String("durga");` | 1 Object created (`"durga"`) | `s` references that Object |
-| `Object o = (Object) s;` | No new object created | `o` also references the same Object |
-| `Integer I = new Integer(10);` | 1 Object created (`10`) | `I` references that Object |
-| `Number n = (Number) I;` | No new object created | `n` also references the same Object |
-| `Object o = (Object) n;` | No new object created | `o` also references the same Object |
-
-### 39.3 Key takeaway: Identity and `==`
-
-- Because all variables created by casting point to the same heap location, comparing those references with `==` returns `true`.
-- Use `==` for identity checks (same object), and `.equals()` for logical equality as appropriate.
-
-Would you like me to add a short Java program that prints `==` comparisons and demonstrates there is no new object creation due to casting? I can add and run it and paste the outputs.
 
 ### 39 Casting Scenarios: Overriding, Method Hiding and Variable Hiding
 
