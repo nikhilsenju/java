@@ -2013,6 +2013,437 @@ Long task — iteration 4
 
 ---
 
-> **Coming Up Next:** Topic 6 — `sleep()` Method and Synchronization
+> **Coming Up Next:** Topic 6 — `sleep()`, Advanced `join()`, and `interrupt()`
+
+---
+---
+
+# Topic 6: Advanced `join()`, `sleep()`, and Thread Interruption
+
+> 📺 **Video:** Core Java with OCJP/SCJP — `join()`, `sleep()`, and `interrupt()`
+> **By:** Durga Software Solutions
+
+This topic provides a deep dive into three critical methods for thread control: advanced `join()` scenarios (including deadlock), the `sleep()` method for timed pauses, and the `interrupt()` mechanism for waking sleeping/waiting threads.
+
+---
+
+## 1 `join()` — Advanced Details
+
+### 1.1 Recap — How `join()` Works
+
+A thread can call `join()` on another thread object, causing the calling thread to **pause** until the target thread finishes:
+
+```java
+// Main thread waits for child to complete
+child.join();  // Main is BLOCKED until child dies
+```
+
+### 1.2 Deadlock with `join()` — Interview Trap ⚠️
+
+A classic interview question involves the **deadlock scenario** with `join()`. If **Thread A** calls `join()` on **Thread B** while **Thread B** simultaneously calls `join()` on **Thread A**, both threads will wait forever — resulting in a **deadlock**.
+
+```
+ ┌──────────────────────────────────────────────────────┐
+ │           Deadlock with join() — DANGER!              │
+ │                                                      │
+ │   Thread A                    Thread B               │
+ │   ┌──────────┐                ┌──────────┐          │
+ │   │ RUNNING  │                │ RUNNING  │          │
+ │   └────┬─────┘                └────┬─────┘          │
+ │        │                           │                 │
+ │        │  threadB.join()           │  threadA.join() │
+ │        ▼                           ▼                 │
+ │   ┌──────────┐                ┌──────────┐          │
+ │   │ WAITING  │ ◄──────────►   │ WAITING  │          │
+ │   │ (for B)  │   DEADLOCK!    │ (for A)  │          │
+ │   └──────────┘                └──────────┘          │
+ │                                                      │
+ │   Both threads wait FOREVER — neither can proceed    │
+ └──────────────────────────────────────────────────────┘
+```
+
+```java
+// ❌ DEADLOCK EXAMPLE — DO NOT DO THIS
+class DeadlockDemo {
+    public static void main(String[] args) {
+
+        Thread mainThread = Thread.currentThread();
+
+        Thread child = new Thread(() -> {
+            try {
+                // Child waits for main to finish
+                mainThread.join();    // ← BLOCKED: waiting for main
+            } catch (InterruptedException e) {}
+            System.out.println("Child done");
+        });
+
+        child.start();
+
+        try {
+            // Main waits for child to finish
+            child.join();            // ← BLOCKED: waiting for child
+        } catch (InterruptedException e) {}
+
+        System.out.println("Main done");
+        // Neither "Child done" nor "Main done" will ever print!
+    }
+}
+```
+
+> [!CAUTION]
+> If Thread A is waiting for Thread B (`B.join()`), and Thread B is waiting for Thread A (`A.join()`), **both are stuck forever**. This is a deadlock — no exception is thrown, the program simply hangs.
+
+### 1.3 `main` Thread and `join()`
+
+The most common use case is the **main thread** calling `join()` on a child thread:
+
+```
+ ┌──────────────────────────────────────────────────────┐
+ │        Main Thread Waiting for Child                  │
+ │                                                      │
+ │   main()                                             │
+ │     │                                                │
+ │     ├── child.start()     → Child begins running     │
+ │     │                                                │
+ │     ├── child.join()      → Main WAITS here          │
+ │     │                       (Waiting state)          │
+ │     │                                                │
+ │     │   ... child runs ...                           │
+ │     │   ... child finishes ...                       │
+ │     │                                                │
+ │     ├── Main RESUMES      → Child is dead            │
+ │     │                                                │
+ │     └── Continues with remaining main logic          │
+ └──────────────────────────────────────────────────────┘
+```
+
+---
+
+## 2 The `sleep()` Method
+
+### 2.1 What is `sleep()`?
+
+`sleep()` is a **static method** in the `Thread` class used to pause the execution of the **currently running thread** for a specified duration. After the time expires, the thread moves back to the Ready/Runnable state.
+
+```java
+public static void sleep(long millis) throws InterruptedException
+public static void sleep(long millis, int nanos) throws InterruptedException
+```
+
+### 2.2 State Transition
+
+```
+ ┌──────────────────────────────────────────────────────┐
+ │              sleep() State Transition                  │
+ │                                                      │
+ │   ┌──────────┐   sleep(ms)    ┌──────────────────┐  │
+ │   │ RUNNING  │ ──────────────►│   SLEEPING       │  │
+ │   └──────────┘                │   (Timed Wait)   │  │
+ │                               └────────┬─────────┘  │
+ │                                        │             │
+ │                              Time expires OR         │
+ │                              interrupted             │
+ │                                        │             │
+ │                                        ▼             │
+ │                               ┌──────────────────┐  │
+ │                               │  READY/RUNNABLE  │  │
+ │                               │ (waits for CPU)  │  │
+ │                               └──────────────────┘  │
+ └──────────────────────────────────────────────────────┘
+```
+
+> [!IMPORTANT]
+> After `sleep()` expires, the thread does **not** go directly back to **Running**. It enters the **Ready/Runnable** state and must wait for the Thread Scheduler to allocate CPU time.
+
+### 2.3 `sleep()` Variants
+
+| Method                                  | Description                                               |
+|-----------------------------------------|-----------------------------------------------------------|
+| `sleep(long millis)`                    | Pauses for the specified milliseconds                     |
+| `sleep(long millis, int nanos)`         | Pauses with nanosecond precision (millis + nanos)         |
+
+### 2.4 `InterruptedException` — Checked Exception
+
+`sleep()` throws an `InterruptedException`, which is a **checked exception**. Any code calling `sleep()` must handle it:
+
+```java
+// Option 1: try-catch (most common)
+try {
+    Thread.sleep(2000);  // Sleep for 2 seconds
+} catch (InterruptedException e) {
+    System.out.println("Thread was interrupted during sleep!");
+}
+
+// Option 2: Declare throws (propagate up)
+public void run() throws InterruptedException {
+    Thread.sleep(2000);
+}
+```
+
+### 2.5 Practical Example
+
+```java
+class SleepDemo extends Thread {
+
+    @Override
+    public void run() {
+        for (int i = 1; i <= 5; i++) {
+            System.out.println(getName() + " — iteration " + i
+                + " [" + System.currentTimeMillis() + "]");
+            try {
+                Thread.sleep(1000);  // Pause 1 second between iterations
+            } catch (InterruptedException e) {
+                System.out.println(getName() + " was interrupted!");
+            }
+        }
+    }
+}
+
+public class SleepExample {
+    public static void main(String[] args) {
+
+        SleepDemo t1 = new SleepDemo();
+        t1.setName("Worker");
+        t1.start();
+    }
+}
+```
+
+**Output (approximately 1 second apart):**
+```
+Worker — iteration 1 [1689612345000]
+Worker — iteration 2 [1689612346001]
+Worker — iteration 3 [1689612347002]
+Worker — iteration 4 [1689612348003]
+Worker — iteration 5 [1689612349004]
+```
+
+> [!NOTE]
+> The actual sleep duration may be slightly longer than specified due to thread scheduling overhead and system timer granularity. `sleep()` guarantees a **minimum** pause, not an exact one.
+
+---
+
+## 3 Thread Interruption — `interrupt()` Method
+
+### 3.1 What is `interrupt()`?
+
+The `interrupt()` method is an **instance method** used to signal a thread that it should stop waiting/sleeping and handle the interruption. It provides a clean mechanism to wake up or signal threads.
+
+```java
+public void interrupt()
+```
+
+### 3.2 Behavior — Two Scenarios
+
+The behavior of `interrupt()` depends on the **state** of the target thread when it is called:
+
+#### Scenario 1: Thread is Currently Sleeping/Waiting
+
+If the target thread is in a `sleep()`, `join()`, or `wait()` call when `interrupt()` is invoked, the sleeping/waiting method **immediately throws** an `InterruptedException`, waking the thread up.
+
+```
+ ┌──────────────────────────────────────────────────────┐
+ │    Scenario 1: Thread is SLEEPING when interrupted    │
+ │                                                      │
+ │   Thread t                     Another Thread        │
+ │   ┌──────────┐                                      │
+ │   │ SLEEPING │  ← Thread.sleep(10000)                │
+ │   └────┬─────┘                                      │
+ │        │                                             │
+ │        │  ◄──── t.interrupt()   (called externally)  │
+ │        │                                             │
+ │        ▼                                             │
+ │   InterruptedException is THROWN immediately          │
+ │        │                                             │
+ │        ▼                                             │
+ │   catch block handles the exception                  │
+ │   Thread WAKES UP and can decide what to do          │
+ └──────────────────────────────────────────────────────┘
+```
+
+#### Scenario 2: Thread is NOT Sleeping/Waiting
+
+If the thread is **currently running** (not in a sleeping or waiting state), the interruption request is **stored** internally as an interrupt flag. The thread will **not** be affected immediately. However, the next time the thread calls `sleep()`, `join()`, or `wait()`, it will **immediately throw** `InterruptedException`.
+
+```
+ ┌──────────────────────────────────────────────────────┐
+ │    Scenario 2: Thread is RUNNING when interrupted     │
+ │                                                      │
+ │   Thread t                                           │
+ │   ┌──────────┐                                      │
+ │   │ RUNNING  │  ← Actively doing work                │
+ │   └────┬─────┘                                      │
+ │        │                                             │
+ │        │  ◄──── t.interrupt()                        │
+ │        │        (flag is SET, but no exception yet)  │
+ │        │                                             │
+ │        │  ... thread continues running ...           │
+ │        │                                             │
+ │        ▼                                             │
+ │   Thread.sleep(1000)  ← Next blocking call           │
+ │        │                                             │
+ │        ▼                                             │
+ │   InterruptedException thrown IMMEDIATELY             │
+ │   (because interrupt flag was already set)           │
+ └──────────────────────────────────────────────────────┘
+```
+
+### 3.3 Practical Example — Interrupting a Sleeping Thread
+
+```java
+class SleepyThread extends Thread {
+
+    @Override
+    public void run() {
+        try {
+            System.out.println("Child: Going to sleep for 10 seconds...");
+            Thread.sleep(10000);  // Sleep for 10 seconds
+            System.out.println("Child: Woke up naturally.");
+        } catch (InterruptedException e) {
+            System.out.println("Child: I was INTERRUPTED! Waking up early.");
+        }
+
+        System.out.println("Child: Continuing with remaining work...");
+    }
+}
+
+public class InterruptExample {
+    public static void main(String[] args) throws InterruptedException {
+
+        SleepyThread child = new SleepyThread();
+        child.start();
+
+        // Let the child sleep for 2 seconds, then interrupt it
+        Thread.sleep(2000);
+        child.interrupt();
+
+        System.out.println("Main: Sent interrupt signal to child.");
+    }
+}
+```
+
+**Output:**
+```
+Child: Going to sleep for 10 seconds...
+Main: Sent interrupt signal to child.
+Child: I was INTERRUPTED! Waking up early.
+Child: Continuing with remaining work...
+```
+
+> [!NOTE]
+> The child was supposed to sleep for 10 seconds, but `interrupt()` woke it up after just 2 seconds. The `InterruptedException` was caught, and the thread continued execution gracefully.
+
+### 3.4 Example — Interrupt Flag on a Running Thread
+
+```java
+class BusyThread extends Thread {
+
+    @Override
+    public void run() {
+        // Phase 1: CPU-intensive work (not sleeping)
+        for (int i = 1; i <= 1_000_000; i++) {
+            // Doing computation... interrupt flag is ignored here
+        }
+        System.out.println("Computation done. Now trying to sleep...");
+
+        // Phase 2: Now try to sleep — interrupt flag will fire
+        try {
+            Thread.sleep(5000);
+        } catch (InterruptedException e) {
+            System.out.println("Caught InterruptedException IMMEDIATELY!");
+            System.out.println("The interrupt was stored and triggered on sleep().");
+        }
+    }
+}
+
+public class StoredInterruptDemo {
+    public static void main(String[] args) {
+
+        BusyThread t = new BusyThread();
+        t.start();
+
+        // Interrupt while the thread is doing computation (not sleeping)
+        t.interrupt();
+    }
+}
+```
+
+**Output:**
+```
+Computation done. Now trying to sleep...
+Caught InterruptedException IMMEDIATELY!
+The interrupt was stored and triggered on sleep().
+```
+
+### 3.5 Key Points about `interrupt()`
+
+| Aspect                          | Detail                                                                |
+|---------------------------------|-----------------------------------------------------------------------|
+| **If thread is sleeping/waiting** | `InterruptedException` is thrown immediately                        |
+| **If thread is running**        | Interrupt flag is stored; exception thrown on next blocking call      |
+| **Non-destructive**             | Does **not** kill or stop the thread — it simply signals it          |
+| **Clean termination**           | Thread can check the interrupt and decide to terminate gracefully    |
+| **Works with**                  | `sleep()`, `join()`, `wait()` — all methods that throw `InterruptedException` |
+
+> [!TIP]
+> **Interview Tip:** `interrupt()` is a **cooperative mechanism**. It does not forcefully stop a thread — it simply sets a flag or throws an exception. The thread itself must check for and respond to the interruption.
+
+---
+
+## 4 `join()` vs. `sleep()` — Comparison
+
+| Aspect                  | `join()`                                           | `sleep()`                                         |
+|-------------------------|---------------------------------------------------|---------------------------------------------------|
+| **Primary Goal**        | Synchronize thread completion                     | Pause thread for a specified duration             |
+| **Type**                | Instance method                                   | Static method                                     |
+| **State Transition**    | Running → **Waiting**                             | Running → **Sleeping** (Timed Waiting)            |
+| **Wake-Up Condition**   | Target thread dies OR timeout expires             | Time expires OR thread is interrupted             |
+| **Control**             | External — waiting for **another** thread         | Internal — self-imposed pause                     |
+| **Throws**              | `InterruptedException` (checked)                  | `InterruptedException` (checked)                  |
+| **Can Be Interrupted**  | ✅ Yes — via `interrupt()`                        | ✅ Yes — via `interrupt()`                        |
+| **Common Use**          | Task dependencies, result aggregation             | Rate limiting, polling, animation timing          |
+
+```
+ ┌──────────────────────────────────────────────────────┐
+ │        join() vs. sleep() — State Diagrams            │
+ │                                                      │
+ │   join():                                            │
+ │   ┌──────────┐              ┌──────────────────┐    │
+ │   │ RUNNING  │ ──join()───► │    WAITING       │    │
+ │   └──────────┘              └───────┬──────────┘    │
+ │                                     │ target dies   │
+ │                               ┌─────▼────────┐      │
+ │                               │ READY/RUNNABLE│     │
+ │                               └──────────────┘      │
+ │                                                      │
+ │   sleep():                                           │
+ │   ┌──────────┐              ┌──────────────────┐    │
+ │   │ RUNNING  │ ──sleep()──► │   SLEEPING       │    │
+ │   └──────────┘              └───────┬──────────┘    │
+ │                                     │ time expires  │
+ │                               ┌─────▼────────┐      │
+ │                               │ READY/RUNNABLE│     │
+ │                               └──────────────┘      │
+ └──────────────────────────────────────────────────────┘
+```
+
+---
+
+## 5 Summary — `sleep()`, Advanced `join()`, and `interrupt()`
+
+| #   | Concept                          | Key Point                                                                                    |
+|-----|----------------------------------|----------------------------------------------------------------------------------------------|
+| 1   | **`join()` Deadlock**            | If Thread A joins B and Thread B joins A simultaneously → both wait forever (deadlock)       |
+| 2   | **`main` and `join()`**          | Main thread commonly calls `child.join()` to wait for child completion before proceeding     |
+| 3   | **`sleep()` Purpose**            | Pauses the current thread for a specified duration; moves to Sleeping (Timed Waiting) state  |
+| 4   | **`sleep()` State**              | Running → Sleeping → Ready/Runnable (does NOT go directly back to Running)                   |
+| 5   | **`sleep()` Exception**          | Throws `InterruptedException` (checked) — must be handled with try-catch or declared         |
+| 6   | **`interrupt()` on sleeping**    | Immediately throws `InterruptedException`, waking the thread up                              |
+| 7   | **`interrupt()` on running**     | Stores the interrupt flag; exception thrown on next `sleep()`/`join()`/`wait()` call          |
+| 8   | **Cooperative mechanism**        | `interrupt()` does not kill a thread — it signals it to handle the interruption gracefully    |
+
+---
+
+> **Coming Up Next:** Topic 7 — Synchronization
 
 ---
