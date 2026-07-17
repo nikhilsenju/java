@@ -1346,6 +1346,324 @@ Exception in thread "main" java.lang.IllegalThreadStateException
 
 ---
 
-> **Coming Up Next:** Topic 4 — Thread Priorities and Methods to Prevent Thread Execution (`yield()`, `join()`, `sleep()`)
+> **Coming Up Next:** Topic 4 — Thread Priorities
+
+---
+---
+
+# Topic 4: Thread Priorities
+
+> 📺 **Video:** Core Java with OCJP/SCJP — Thread Priorities
+> **By:** Durga Software Solutions
+
+This topic explains the thread priority mechanism in Java — how the Thread Scheduler uses priorities to influence execution order, the valid range, default values, inheritance behavior, and important platform-level caveats.
+
+---
+
+## 1 What are Thread Priorities? `[00:36]`, `[17:06]`
+
+Every thread in Java has a **priority** — an integer value that serves as a **hint to the Thread Scheduler**. When multiple threads are in the **Runnable** state and competing for CPU time, the scheduler uses these priorities to decide which thread gets to run next.
+
+```
+ ┌─────────────────────────────────────────────────────┐
+ │              Thread Scheduler                        │
+ │                                                     │
+ │   Runnable Threads (waiting for CPU):               │
+ │                                                     │
+ │   ┌──────────┐  ┌──────────┐  ┌──────────────────┐ │
+ │   │ Thread A │  │ Thread B │  │    Thread C      │ │
+ │   │ Priority │  │ Priority │  │   Priority       │ │
+ │   │    10    │  │    5     │  │      1           │ │
+ │   └──────────┘  └──────────┘  └──────────────────┘ │
+ │                                                     │
+ │   Scheduler PREFERS Thread A (highest priority)     │
+ │   But behavior is NOT guaranteed — it's a hint      │
+ └─────────────────────────────────────────────────────┘
+```
+
+> [!IMPORTANT]
+> Priorities are **suggestions**, not commands. The Thread Scheduler is free to ignore them. The actual behavior depends on the underlying operating system's scheduling algorithm.
+
+---
+
+## 2 Priority Range & Constants `[01:49]`, `[07:33]`
+
+Thread priorities in Java are represented as integers within a fixed range, with three named constants provided by the `Thread` class for convenience.
+
+| Constant                  | Value | Description                  |
+|---------------------------|-------|------------------------------|
+| `Thread.MIN_PRIORITY`     | `1`   | Lowest possible priority     |
+| `Thread.NORM_PRIORITY`    | `5`   | Default priority for threads |
+| `Thread.MAX_PRIORITY`     | `10`  | Highest possible priority    |
+
+```
+  Priority Scale:
+
+  1 ─── 2 ─── 3 ─── 4 ─── 5 ─── 6 ─── 7 ─── 8 ─── 9 ─── 10
+  │                         │                               │
+  MIN_PRIORITY         NORM_PRIORITY                  MAX_PRIORITY
+  (lowest)             (default)                      (highest)
+```
+
+> [!NOTE]
+> These are not "ranks" in the sense that a higher number implies more "important" in a human sense. They are numerical instructions to the scheduler, indicating relative preference for CPU allocation.
+
+---
+
+## 3 Methods for Thread Priority `[22:28]`
+
+The `Thread` class provides two methods for inspecting and modifying a thread's priority:
+
+| Method                   | Return Type | Description                                |
+|--------------------------|-------------|--------------------------------------------|
+| `getPriority()`          | `int`       | Returns the current priority of the thread |
+| `setPriority(int p)`     | `void`      | Sets the priority of the thread            |
+
+### 3.1 Basic Example
+
+```java
+class PriorityDemo {
+    public static void main(String[] args) {
+
+        Thread t = new Thread();
+
+        // Get the default priority
+        System.out.println("Default priority: " + t.getPriority());
+        // Output: Default priority: 5
+
+        // Set a custom priority
+        t.setPriority(8);
+        System.out.println("Updated priority: " + t.getPriority());
+        // Output: Updated priority: 8
+
+        // Using named constants
+        t.setPriority(Thread.MAX_PRIORITY);
+        System.out.println("Max priority: " + t.getPriority());
+        // Output: Max priority: 10
+    }
+}
+```
+
+### 3.2 Error Handling — `IllegalArgumentException` `[22:28]`, `[26:03]`
+
+If you attempt to set a priority **outside the valid range** (1–10), the JVM throws an `IllegalArgumentException` at runtime:
+
+```java
+Thread t = new Thread();
+
+t.setPriority(0);    // ❌ IllegalArgumentException (below 1)
+t.setPriority(11);   // ❌ IllegalArgumentException (above 10)
+t.setPriority(-1);   // ❌ IllegalArgumentException (negative)
+t.setPriority(100);  // ❌ IllegalArgumentException (way out of range)
+```
+
+```
+ ┌──────────────────────────────────────────────────────┐
+ │           setPriority(int p) Validation               │
+ │                                                      │
+ │   if (p < 1 || p > 10)                               │
+ │       throw new IllegalArgumentException();           │
+ │                                                      │
+ │   Valid Range:   1 ≤ p ≤ 10                           │
+ │   Invalid:       p < 1  OR  p > 10                    │
+ └──────────────────────────────────────────────────────┘
+```
+
+> [!CAUTION]
+> This is a **runtime exception**, not a compile-time error. The code will compile without any issues — the exception only surfaces when the invalid `setPriority()` call is executed.
+
+---
+
+## 4 Default Priorities & Inheritance `[27:19]`, `[28:47]`
+
+### 4.1 Main Thread Default Priority
+
+The **main thread** always starts with a priority of **5** (`Thread.NORM_PRIORITY`):
+
+```java
+public class MainPriority {
+    public static void main(String[] args) {
+        System.out.println("Main thread priority: "
+            + Thread.currentThread().getPriority());
+        // Output: Main thread priority: 5
+    }
+}
+```
+
+### 4.2 Priority Inheritance
+
+When a new thread is created, it **inherits its priority from the parent thread** (the thread that created it). It does **not** default to `5` unconditionally — it copies whatever priority the parent has at the time of creation.
+
+```java
+class InheritanceDemo {
+    public static void main(String[] args) {
+
+        // Main thread priority is 5 by default
+        System.out.println("Main priority: "
+            + Thread.currentThread().getPriority());
+        // Output: Main priority: 5
+
+        Thread child1 = new Thread(() -> {});
+        System.out.println("Child1 priority: " + child1.getPriority());
+        // Output: Child1 priority: 5  (inherits from main)
+
+        // Change main thread's priority to 9
+        Thread.currentThread().setPriority(9);
+
+        Thread child2 = new Thread(() -> {});
+        System.out.println("Child2 priority: " + child2.getPriority());
+        // Output: Child2 priority: 9  (inherits the updated parent priority)
+    }
+}
+```
+
+```
+ ┌──────────────────────────────────────────────────────┐
+ │            Priority Inheritance Chain                  │
+ │                                                      │
+ │   Main Thread (priority = 5)                         │
+ │       │                                              │
+ │       ├── Child Thread A  →  inherits priority 5     │
+ │       │                                              │
+ │   Main Thread priority changed to 9                  │
+ │       │                                              │
+ │       ├── Child Thread B  →  inherits priority 9     │
+ │       │                                              │
+ │       └── Child Thread C  →  inherits priority 9     │
+ └──────────────────────────────────────────────────────┘
+```
+
+> [!IMPORTANT]
+> The inherited priority is a **snapshot at creation time**. If the parent's priority changes *after* the child is created, the child's priority is **not** retroactively updated.
+
+---
+
+## 5 Thread Scheduler Behavior `[18:40]`, `[19:38]`
+
+### 5.1 Higher Priority Preference
+
+The Thread Scheduler **generally prefers** threads with higher priority values. A thread with priority `10` is more likely to get CPU time than a thread with priority `1`.
+
+```
+ ┌──────────────────────────────────────────────────────┐
+ │          Scheduler Priority Preference                │
+ │                                                      │
+ │   Priority 10:  ████████████████████  (most CPU)     │
+ │   Priority  7:  ████████████                         │
+ │   Priority  5:  ████████                             │
+ │   Priority  3:  ████                                 │
+ │   Priority  1:  ██                    (least CPU)    │
+ │                                                      │
+ │   This is the EXPECTED behavior, but NOT guaranteed  │
+ └──────────────────────────────────────────────────────┘
+```
+
+### 5.2 Equal Priority — No Guaranteed Order
+
+If two or more threads have the **same priority**, the execution order is **not guaranteed**. The actual order depends on the specific algorithm used by the underlying Thread Scheduler.
+
+| Scheduling Algorithm      | Behavior                                                     |
+|---------------------------|--------------------------------------------------------------|
+| **Round Robin**           | Each thread gets equal time slices in rotation               |
+| **First-Come-First-Served** | Threads are scheduled in the order they entered the queue  |
+| **Preemptive**            | Higher-priority threads interrupt lower-priority ones        |
+| **Platform-Specific**     | Varies by OS — the JVM maps to the native scheduler         |
+
+> [!NOTE]
+> The exact scheduling algorithm is platform-dependent and **not specified** by the Java Language Specification. You should never write code that relies on a specific scheduling order.
+
+---
+
+## 6 Practical Example — Priority in Action
+
+```java
+class PriorityTask extends Thread {
+
+    public PriorityTask(String name) {
+        super(name);
+    }
+
+    @Override
+    public void run() {
+        for (int i = 1; i <= 5; i++) {
+            System.out.println(getName() + " [Priority "
+                + getPriority() + "] — iteration " + i);
+        }
+    }
+}
+
+public class PriorityExample {
+    public static void main(String[] args) {
+
+        PriorityTask low    = new PriorityTask("LowThread");
+        PriorityTask normal = new PriorityTask("NormalThread");
+        PriorityTask high   = new PriorityTask("HighThread");
+
+        low.setPriority(Thread.MIN_PRIORITY);       // 1
+        normal.setPriority(Thread.NORM_PRIORITY);    // 5
+        high.setPriority(Thread.MAX_PRIORITY);       // 10
+
+        low.start();
+        normal.start();
+        high.start();
+    }
+}
+```
+
+**Expected Behavior:**
+- `HighThread` (priority 10) is **most likely** to finish first.
+- `LowThread` (priority 1) is **most likely** to finish last.
+- However, the actual order is **not guaranteed** — it depends on the OS and JVM implementation.
+
+---
+
+## 7 Platform Limitations `[56:07]`, `[58:08]`
+
+### 7.1 The Platform-Dependence Problem
+
+Some operating systems do **not fully support** Java's 10-level priority system. The JVM maps Java's 10 priority levels to the **native OS priority levels**, and different OSes have different numbers of priority levels.
+
+| Operating System | Native Priority Levels | Java Mapping                                   |
+|------------------|------------------------|-------------------------------------------------|
+| **Linux**        | ~2 (normal, real-time) | Multiple Java levels may map to the same OS level |
+| **Windows**      | 7 levels               | Some Java levels collapse into the same OS level  |
+| **Solaris**      | ~128 levels            | Good granularity — close to 1:1 mapping          |
+
+### 7.2 Practical Impact
+
+```
+ ┌──────────────────────────────────────────────────────┐
+ │        Platform Priority Mapping (Simplified)         │
+ │                                                      │
+ │   Java Priority:   1  2  3  4  5  6  7  8  9  10    │
+ │                    │  │  │  │  │  │  │  │  │  │     │
+ │   Some OS Levels:  ▼  ▼  ▼  ▼  ▼  ▼  ▼  ▼  ▼  ▼   │
+ │                    1  1  1  2  3  4  5  5  6  7     │
+ │                                                      │
+ │   Java priorities 1, 2, 3 → ALL map to OS level 1   │
+ │   Setting priority 1 vs 3 has NO practical effect!   │
+ └──────────────────────────────────────────────────────┘
+```
+
+> [!WARNING]
+> Even if you explicitly set thread priorities, the expected execution order may **not** be observed on all platforms. This is a **platform-dependent issue**, not a problem with the Java code itself. Do not write code that depends on thread priorities for correctness — use them only as performance hints.
+
+---
+
+## 8 Summary — Thread Priorities
+
+| #   | Concept                          | Key Point                                                                                 |
+|-----|----------------------------------|-------------------------------------------------------------------------------------------|
+| 1   | **Priority Range**               | Valid range is `1` to `10`; constants: `MIN_PRIORITY (1)`, `NORM_PRIORITY (5)`, `MAX_PRIORITY (10)` |
+| 2   | **`getPriority()` / `setPriority()`** | Get or set a thread's priority; invalid values throw `IllegalArgumentException`          |
+| 3   | **Main Thread Default**          | Main thread starts with priority `5` (`NORM_PRIORITY`)                                   |
+| 4   | **Priority Inheritance**         | Child threads inherit priority from the parent thread at the time of creation             |
+| 5   | **Scheduler Behavior**           | Higher-priority threads are generally preferred, but order is never guaranteed             |
+| 6   | **Equal Priority**               | Execution order depends on the OS-specific scheduling algorithm (Round Robin, FCFS, etc.) |
+| 7   | **Platform Limitations**         | Some OSes don't fully support 10 priority levels — multiple Java levels may map to one OS level |
+
+---
+
+> **Coming Up Next:** Topic 5 — Methods to Prevent Thread Execution (`yield()`, `join()`, `sleep()`)
 
 ---
