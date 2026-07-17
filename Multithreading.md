@@ -1664,6 +1664,355 @@ Some operating systems do **not fully support** Java's 10-level priority system.
 
 ---
 
-> **Coming Up Next:** Topic 5 — Methods to Prevent Thread Execution (`yield()`, `join()`, `sleep()`)
+> **Coming Up Next:** Topic 5 — `yield()` and `join()` Methods
+
+---
+---
+
+# Topic 5: Methods to Prevent Thread Execution — `yield()` and `join()`
+
+> 📺 **Video:** Core Java with OCJP/SCJP — `yield()` and `join()` Methods
+> **By:** Durga Software Solutions
+
+This topic covers two of the most important methods used to control thread execution: `yield()` for voluntarily pausing to give others a chance, and `join()` for waiting until another thread completes. Both are essential tools for managing thread coordination.
+
+---
+
+## 1 The `yield()` Method `[1.2.1]`, `[1.2.2]`
+
+### 1.1 What is `yield()`?
+
+`yield()` is a **static method** in the `Thread` class that provides a **hint** to the Thread Scheduler. It indicates that the currently executing thread is willing to pause its execution to give a chance to other waiting threads of the **same or higher priority**.
+
+```java
+public static native void yield();
+```
+
+### 1.2 State Transition
+
+When `yield()` is called, the current thread moves from the **Running** state back to the **Ready/Runnable** state. The Thread Scheduler then decides which thread should run next.
+
+```
+ ┌──────────────────────────────────────────────────────┐
+ │              yield() State Transition                  │
+ │                                                      │
+ │                                                      │
+ │   ┌──────────┐    yield()     ┌──────────────────┐   │
+ │   │ RUNNING  │ ─────────────► │  READY/RUNNABLE  │   │
+ │   │ (Thread) │                │   (Thread Pool)  │   │
+ │   └──────────┘                └──────────────────┘   │
+ │                                      │               │
+ │                                      │ Scheduler     │
+ │                                      │ picks next    │
+ │                                      ▼               │
+ │                               ┌──────────────────┐   │
+ │                               │ Same thread OR   │   │
+ │                               │ Different thread │   │
+ │                               │ starts RUNNING   │   │
+ │                               └──────────────────┘   │
+ └──────────────────────────────────────────────────────┘
+```
+
+### 1.3 How it Works — Step by Step
+
+```
+ Thread A is RUNNING and calls Thread.yield()
+     │
+     ▼
+ 1. Thread A moves from RUNNING → READY/RUNNABLE
+     │
+     ▼
+ 2. Thread Scheduler checks the Ready queue
+     │
+     ├── Are there other threads with SAME or HIGHER priority waiting?
+     │       │
+     │       ├── YES → Scheduler MAY give CPU to one of them
+     │       │
+     │       └── NO  → Thread A may immediately resume running
+     │
+     ▼
+ 3. Scheduler makes the final decision (hint may be ignored)
+```
+
+### 1.4 Key Caveats
+
+> [!IMPORTANT]
+> `yield()` is a **polite request**, not a command. The scheduler is under **no obligation** to honor it.
+
+| Caveat                           | Explanation                                                          |
+|----------------------------------|----------------------------------------------------------------------|
+| **Scheduler may ignore it**      | The scheduler is free to let the current thread continue running     |
+| **No waiting threads**           | If no other threads are waiting, the yielding thread resumes immediately |
+| **Lower-priority threads**       | If all waiting threads have lower priority, the current thread may continue |
+| **Not for critical logic**       | Should be used for debugging or specific concurrency tuning, not core logic |
+| **Platform-dependent**           | Behavior varies across different JVM implementations and OSes        |
+
+### 1.5 Practical Example
+
+```java
+class YieldDemo extends Thread {
+
+    public YieldDemo(String name) {
+        super(name);
+    }
+
+    @Override
+    public void run() {
+        for (int i = 1; i <= 5; i++) {
+            System.out.println(getName() + " — iteration " + i);
+
+            // Hint: let other threads of same/higher priority run
+            Thread.yield();
+        }
+    }
+}
+
+public class YieldExample {
+    public static void main(String[] args) {
+
+        YieldDemo t1 = new YieldDemo("Thread-A");
+        YieldDemo t2 = new YieldDemo("Thread-B");
+
+        t1.start();
+        t2.start();
+    }
+}
+```
+
+**Possible Output (order varies — yield is just a hint):**
+```
+Thread-A — iteration 1
+Thread-B — iteration 1
+Thread-A — iteration 2
+Thread-B — iteration 2
+Thread-A — iteration 3
+Thread-B — iteration 3
+...
+```
+
+> [!NOTE]
+> With `yield()`, you may observe more **interleaved** execution between threads because each thread voluntarily gives up the CPU after every iteration. Without it, one thread might dominate the CPU for longer stretches.
+
+---
+
+## 2 The `join()` Method `[1.3.1]`, `[1.3.2]`
+
+### 2.1 What is `join()`?
+
+The `join()` method is used to **pause the execution of the current thread** until the thread on which `join()` was called **completes its execution** (dies). It is an **instance method** of the `Thread` class.
+
+```java
+public final void join() throws InterruptedException
+public final void join(long millis) throws InterruptedException
+public final void join(long millis, int nanos) throws InterruptedException
+```
+
+### 2.2 State Transition
+
+When Thread A calls `t.join()`, Thread A enters the **Waiting** state and remains there until Thread `t` terminates. Once Thread `t` finishes, Thread A resumes its execution.
+
+```
+ ┌──────────────────────────────────────────────────────┐
+ │               join() State Transition                  │
+ │                                                      │
+ │   Thread A (calling thread)    Thread t (target)     │
+ │   ┌──────────┐                ┌──────────┐          │
+ │   │ RUNNING  │                │ RUNNING  │          │
+ │   └────┬─────┘                └──────────┘          │
+ │        │                                             │
+ │        │  t.join()                                   │
+ │        ▼                                             │
+ │   ┌──────────┐                                      │
+ │   │ WAITING  │  ← Thread A is BLOCKED here          │
+ │   │ (for t)  │                                      │
+ │   └────┬─────┘                                      │
+ │        │                      ┌──────────┐          │
+ │        │                      │  Thread t │          │
+ │        │  t completes ◄────── │   DIES    │          │
+ │        │                      └──────────┘          │
+ │        ▼                                             │
+ │   ┌──────────┐                                      │
+ │   │ RUNNING  │  ← Thread A RESUMES                  │
+ │   └──────────┘                                      │
+ └──────────────────────────────────────────────────────┘
+```
+
+### 2.3 `join()` Variants
+
+The `Thread` class provides three overloaded versions of `join()`:
+
+| Method                                  | Description                                                          |
+|-----------------------------------------|----------------------------------------------------------------------|
+| `join()`                                | Waits **indefinitely** until the target thread dies                  |
+| `join(long millis)`                     | Waits for **at most** the specified milliseconds                     |
+| `join(long millis, int nanos)`          | Waits for a specific duration with **nanosecond precision**          |
+
+```
+ ┌──────────────────────────────────────────────────────┐
+ │                 join() Variants                       │
+ │                                                      │
+ │   t.join()                                           │
+ │   ├── Wait FOREVER until t dies                      │
+ │   └── Thread A may be stuck if t never finishes!     │
+ │                                                      │
+ │   t.join(2000)                                       │
+ │   ├── Wait at most 2 seconds                         │
+ │   └── If t hasn't finished in 2s, A resumes anyway   │
+ │                                                      │
+ │   t.join(2000, 500000)                               │
+ │   ├── Wait 2 seconds + 500,000 nanoseconds           │
+ │   └── Fine-grained timeout control                   │
+ └──────────────────────────────────────────────────────┘
+```
+
+> [!CAUTION]
+> `join()` throws a **checked** `InterruptedException`. You must either handle it with a `try-catch` block or declare it with `throws` in the method signature.
+
+### 2.4 Practical Example — Main Waits for Child
+
+```java
+class ChildThread extends Thread {
+
+    @Override
+    public void run() {
+        for (int i = 1; i <= 5; i++) {
+            System.out.println("Child Thread — iteration " + i);
+            try {
+                Thread.sleep(500);  // Simulate work
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+        System.out.println("Child Thread FINISHED.");
+    }
+}
+
+public class JoinExample {
+    public static void main(String[] args) throws InterruptedException {
+
+        ChildThread child = new ChildThread();
+        child.start();
+
+        // Main thread WAITS for child to finish
+        child.join();
+
+        // This line executes ONLY after child completes
+        System.out.println("Main Thread resumes after child is done.");
+    }
+}
+```
+
+**Guaranteed Output Order:**
+```
+Child Thread — iteration 1
+Child Thread — iteration 2
+Child Thread — iteration 3
+Child Thread — iteration 4
+Child Thread — iteration 5
+Child Thread FINISHED.
+Main Thread resumes after child is done.
+```
+
+> [!NOTE]
+> Without `child.join()`, the main thread would continue executing in parallel with the child, and "Main Thread resumes..." could appear **anywhere** in the output.
+
+### 2.5 Example — Timed `join()`
+
+```java
+public class TimedJoinExample {
+    public static void main(String[] args) throws InterruptedException {
+
+        Thread longTask = new Thread(() -> {
+            for (int i = 1; i <= 10; i++) {
+                System.out.println("Long task — iteration " + i);
+                try { Thread.sleep(1000); } catch (InterruptedException e) {}
+            }
+        });
+
+        longTask.start();
+
+        // Wait at most 3 seconds for the long task
+        longTask.join(3000);
+
+        System.out.println("Main thread resumed (waited max 3 seconds).");
+        System.out.println("Is long task still alive? " + longTask.isAlive());
+    }
+}
+```
+
+**Expected Output:**
+```
+Long task — iteration 1
+Long task — iteration 2
+Long task — iteration 3
+Main thread resumed (waited max 3 seconds).
+Is long task still alive? true          ← long task is NOT finished yet
+Long task — iteration 4
+...
+```
+
+### 2.6 Use Cases for `join()`
+
+| Use Case                                | Example                                                         |
+|-----------------------------------------|-----------------------------------------------------------------|
+| **Dependency between tasks**            | Main thread needs the result of a background computation        |
+| **Aggregating parallel results**        | Wait for all worker threads to finish, then combine results     |
+| **Ordered execution**                   | Ensure Thread A completes before Thread B starts its logic      |
+| **Graceful shutdown**                   | Main thread waits for all child threads before exiting          |
+
+---
+
+## 3 `yield()` vs. `join()` — Comparison
+
+| Aspect                  | `yield()`                                        | `join()`                                          |
+|-------------------------|--------------------------------------------------|---------------------------------------------------|
+| **Purpose**             | Polite request to let others run                 | Mandatory wait for another thread to finish       |
+| **Type**                | `static` method                                  | `instance` method                                 |
+| **Caller**              | Currently running thread yields itself           | Current thread waits for a *specific* thread      |
+| **State Transition**    | Running → Ready/Runnable                         | Running → Waiting                                 |
+| **Guarantee**           | ❌ No guarantee — scheduler may ignore           | ✅ Guaranteed wait (until target dies or timeout)  |
+| **Throws Exception**    | No                                               | Yes — `InterruptedException` (checked)            |
+| **Overloaded Versions** | No                                               | Yes — `join()`, `join(ms)`, `join(ms, ns)`        |
+| **Common Use**          | Debugging, concurrency tuning                    | Task dependencies, result aggregation             |
+
+```
+ ┌──────────────────────────────────────────────────────┐
+ │          State Transition Comparison                   │
+ │                                                      │
+ │   yield():                                           │
+ │   ┌──────────┐              ┌──────────────────┐    │
+ │   │ RUNNING  │ ──yield()──► │  READY/RUNNABLE  │    │
+ │   └──────────┘              └──────────────────┘    │
+ │   (Thread goes back to the pool, may run again)      │
+ │                                                      │
+ │   join():                                            │
+ │   ┌──────────┐              ┌──────────────────┐    │
+ │   │ RUNNING  │ ──join()───► │    WAITING       │    │
+ │   └──────────┘              └───────┬──────────┘    │
+ │                                     │ target dies   │
+ │                               ┌─────▼────────┐      │
+ │                               │   RUNNING    │      │
+ │                               └──────────────┘      │
+ └──────────────────────────────────────────────────────┘
+```
+
+---
+
+## 4 Summary — `yield()` and `join()`
+
+| #   | Concept                          | Key Point                                                                                  |
+|-----|----------------------------------|--------------------------------------------------------------------------------------------|
+| 1   | **`yield()` Purpose**            | A polite hint to the scheduler to let other same/higher-priority threads run               |
+| 2   | **`yield()` State**              | Running → Ready/Runnable; scheduler may ignore the request entirely                        |
+| 3   | **`yield()` Caveats**            | Not guaranteed; platform-dependent; not suitable for critical logic                        |
+| 4   | **`join()` Purpose**             | Forces the current thread to wait until the target thread completes (dies)                 |
+| 5   | **`join()` State**               | Running → Waiting; resumes only when target thread terminates or timeout expires           |
+| 6   | **`join()` Variants**            | `join()`, `join(ms)`, `join(ms, ns)` — indefinite, timed, and nanosecond-precision waits   |
+| 7   | **`InterruptedException`**       | `join()` throws a checked exception — must be handled with try-catch or declared           |
+| 8   | **Key Difference**               | `yield()` = optional hint (no guarantee); `join()` = mandatory wait (guaranteed behavior)  |
+
+---
+
+> **Coming Up Next:** Topic 6 — `sleep()` Method and Synchronization
 
 ---
